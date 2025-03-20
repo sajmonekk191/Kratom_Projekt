@@ -1,0 +1,659 @@
+:root {
+    --primary-color: #388E3C; /* Tmavší zelená */
+    --secondary-color: #689F38; /* Tmavší světle zelená */
+    --background-dark: #1E1E1E; /* Ještě tmavší šedá */
+    --background-light: #2A2A2A; /* Tmavší světle šedá */
+    --text-light: #FFFFFF; /* Bílý text */
+    --text-dark: #E0E0E0; /* Světle šedý text */
+    --card-background: rgba(255, 255, 255, 0.1); /* Průhledné bílé kartičky */
+    --neon-shadow: 0 0 10px rgba(56, 142, 60, 0.7), 0 0 20px rgba(56, 142, 60, 0.5); /* Neonové efekty */
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--background-dark);
+    color: var(--text-dark);
+    overflow-x: hidden;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header */
+header {
+    background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
+    color: white;
+    padding: 18px 0; /* Zvětšený padding (top a bottom) */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.3s ease;
+    text-decoration: none;
+    color: white;
+    cursor: pointer; /* Kurzor "ručička" při najetí */
+}
+
+header .logo:hover {
+    transform: scale(1.10);
+}
+
+header .logo img {
+    height: 50px; /* Zvětšená výška loga */
+    filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.7));
+}
+
+header .logo h1 {
+    margin: 0;
+    font-size: 1.8rem; /* Zvětšená velikost textu */
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: var(--neon-shadow);
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Ikonka košíku */
+.cart-icon {
+    position: relative;
+    margin-left: 20px; /* Mezera od loga */
+}
+
+.cart-icon a {
+    color: white;
+    font-size: 1.5rem; /* Větší ikonka košíku */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.cart-icon a:hover {
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+}
+
+/* Hero Section */
+.hero {
+    position: relative;
+    background: linear-gradient(135deg, rgba(29, 29, 29, 0.4), rgba(29, 29, 29, 0.8)), url('resources/background.webp') no-repeat center center/cover;
+    color: white;
+    padding: 220px 0;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(76, 175, 80, 0.2), transparent 70%);
+    animation: pulse 6s infinite alternate;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-content h2 {
+    margin-bottom: 80px;  /* mezera pod nadpisem */
+    display: block;
+}
+
+.hero-content p {
+    margin-bottom: 30px;  /* mezera pod odstavcem */
+    display: block;
+}
+
+.hero-content .btn {
+    margin-top: 20px;  /* mezera nad tlačítkem */
+    display: inline-block;
+}
+
+
+.hero h2 {
+    font-size: 3.5rem;
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.7), 0 0 20px rgba(76, 175, 80, 0.5);
+    animation: neonGlow 2s infinite alternate;
+}
+
+@keyframes neonGlow {
+    0% {
+        text-shadow: 0 0 10px rgba(76, 175, 80, 0.5), 0 0 20px rgba(76, 175, 80, 0.5);
+    }
+    100% {
+        text-shadow: 0 0 20px rgba(76, 175, 80, 0.7), 0 0 40px rgba(76, 175, 80, 0.7);
+    }
+}
+
+.hero p {
+    font-size: 1.5rem;
+    margin: 20px 0;
+    color: var(--text-dark);
+    animation: fadeIn 2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero .btn {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: var(--background-dark);
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.7), 0 0 20px rgba(76, 175, 80, 0.5); /* Neonové záření */
+}
+
+.hero .btn:hover::before {
+    left: 100%;
+}
+
+.hero .btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7), 0 0 30px rgba(76, 175, 80, 0.5);
+}
+
+/* Světelné efekty */
+.hero-lights {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 20%, rgba(76, 175, 80, 0.1), transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(76, 175, 80, 0.1), transparent 30%);
+}
+
+/* ABOUT SECTION */
+#about {
+    color: #fff;
+    padding: 120px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+#about::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    animation: rotate 20s linear infinite;
+    z-index: 0;
+}
+
+#about .container {
+    position: relative;
+    z-index: 1;
+}
+
+#about h2 {
+    font-size: 3.5rem;
+    margin-bottom: 50px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    animation: neonPulse 1.2s ease-in-out infinite alternate;
+    position: relative;
+    display: inline-block;
+    padding: 0 20px;
+}
+
+#about h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 3px;
+}
+
+#about p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #eee;
+    max-width: 800px;
+    margin: 0 auto 70px;
+    position: relative;
+    padding: 20px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(0,255,0,0.2);
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    justify-items: center;
+    padding: 0 50px;
+    position: relative;
+}
+
+.about-card {
+    background: linear-gradient(145deg, #111 0%, #1a1a1a 100%);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    border: 1px solid rgba(0,255,0,0.1);
+}
+
+.about-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 0%, rgba(0,255,0,0.1) 50%, transparent 100%);
+    transform: rotate(45deg);
+    transition: 0.5s;
+}
+
+.about-card:hover {
+    transform: translateY(-15px) rotateX(5deg) rotateY(-5deg);
+    box-shadow: 0 20px 40px rgba(0,255,0,0.3),
+                0 0 60px rgba(0,255,0,0.1),
+                0 0 100px rgba(0,255,0,0.05);
+}
+
+.about-card:hover::before {
+    animation: cardGlow 2s linear infinite;
+}
+
+.about-card i {
+    font-size: 3.5rem;
+    color: #0f0;
+    margin-bottom: 25px;
+    position: relative;
+    display: inline-block;
+    transition: 0.3s;
+    text-shadow: 0 0 15px rgba(0,255,0,0.5);
+    animation: float 3s ease-in-out infinite;
+}
+
+.about-card:hover i {
+    transform: scale(1.2);
+    animation: none;
+}
+
+.about-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+}
+
+.about-card h3::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 2px;
+    background: #0f0;
+    box-shadow: 0 0 10px #0f0;
+}
+
+.about-card p {
+    font-size: 1rem;
+    color: #ccc;
+    line-height: 1.8;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes neonPulse {
+    0% { opacity: 0.9; text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0; }
+    100% { opacity: 1; text-shadow: 0 0 20px #0f0, 0 0 40px #0f0, 0 0 60px #0f0; }
+}
+
+@keyframes cardGlow {
+    0% { opacity: 0; transform: rotate(45deg) translate(-30%, -30%); }
+    50% { opacity: 0.3; }
+    100% { opacity: 0; transform: rotate(45deg) translate(30%, 30%); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@media (max-width: 992px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 0 20px;
+    }
+    
+    #about h2 {
+        font-size: 2.5rem;
+    }
+    
+    .about-card {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 576px) {
+    #about {
+        padding: 80px 0;
+    }
+    
+    #about h2 {
+        font-size: 2rem;
+    }
+    
+    #about p {
+        font-size: 1rem;
+        padding: 15px;
+    }
+}
+
+
+/* Products Section */
+.products {
+    padding: 50px 0;
+    text-align: center;
+}
+
+.products h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: var(--neon-shadow);
+}
+
+.product-grid {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.product {
+    background: linear-gradient(to bottom, var(--card-background), rgba(255, 255, 255, 0.05));
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: var(--neon-shadow);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s, box-shadow 0.3s;
+    width: 30%;
+    text-align: center;
+    margin: 10px;
+    border: 2px solid rgba(76, 175, 80, 0.5); /* Přidáme ohraničení */
+}
+
+.product:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7), 0 0 30px rgba(76, 175, 80, 0.5);
+}
+
+.product i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.7), 0 0 20px rgba(76, 175, 80, 0.5); /* Podsvícení */
+    filter: brightness(0.8); /* Ztmavíme ikonky */
+}
+
+.product h3 {
+    font-size: 1.5rem;
+    margin: 10px 0;
+}
+
+.product p {
+    font-size: 1rem;
+    margin: 5px 0;
+}
+
+.product .effect-indicators {
+    margin: 20px 0;
+}
+
+.product .indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.product .indicator i {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.product .bar {
+    height: 10px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    position: relative;
+    flex-grow: 1;
+}
+
+.product .bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 5px;
+}
+
+.product .bar.energy::before {
+    background: #FFA500; /* Tmavší oranžová pro energii */
+    width: var(--width, 80%);
+}
+
+.product .bar.creativity::before {
+    background: #FF1493; /* Tmavší růžová pro kreativitu */
+    width: var(--width, 60%);
+}
+
+.product .bar.cognitive::before {
+    background: #1E90FF; /* Tmavší modrá pro kognitivní funkce */
+    width: var(--width, 70%);
+}
+
+.product .bar.chill::before {
+    background: #228B22; /* Tmavší zelená pro chill */
+    width: var(--width, 50%);
+}
+
+.product .price {
+    font-size: 1.2rem;
+    margin: 10px 0;
+}
+
+.product .btn {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: var(--background-dark);
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    font-weight: bold;
+}
+
+.product .btn:hover {
+    transform: scale(1.1);
+    box-shadow: var(--neon-shadow);
+}
+
+/* FAQ Section */
+.faq {
+    padding: 50px 0;
+    text-align: center;
+}
+
+.faq h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: var(--neon-shadow);
+}
+
+.faq-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.faq-item {
+    background: linear-gradient(to bottom, var(--card-background), rgba(255, 255, 255, 0.05));
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: var(--neon-shadow);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 45%;
+}
+
+.faq-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.faq-item h3 {
+    font-size: 1.2rem;
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-item p {
+    font-size: 1rem;
+    margin: 10px 0 0;
+    display: none;
+}
+
+.faq-item.active p {
+    display: block;
+}
+
+/* Contact Section */
+.contact {
+    padding: 50px 0;
+    text-align: center;
+}
+
+.contact h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: var(--neon-shadow);
+}
+
+.contact form {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.contact form input, .contact form textarea {
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    background: var(--card-background);
+    color: var(--text-light);
+}
+
+.contact form button {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: var(--background-dark);
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.contact form button:hover {
+    background: linear-gradient(to right, var(--secondary-color), var(--primary-color));
+}
+
+/* Footer */
+footer {
+    background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+
+footer .social-icons a {
+    color: white;
+    font-size: 1.5rem;
+    transition: text-shadow 0.3s;
+}
+
+footer .social-icons a:hover {
+    text-shadow: var(--neon-shadow);
+}
