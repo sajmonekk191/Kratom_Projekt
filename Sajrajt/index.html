@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sajrajt.cz - Nejkvalitnější Kratom v České republice. Energizující, uvolňující a léčivé účinky.">
+    <title>Sajrajt.cz - Nejlepší Kratom v ČR</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="resources/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- Three.js for 3D effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.159.0/three.min.js"></script>
+    
+</head>
+<body>
+    <!-- Particle Canvas Background -->
+    <canvas id="particleCanvas" class="particle-canvas"></canvas>
+    
+    <!-- Meteor Effect -->
+    <div class="meteor-container">
+        <div class="meteor meteor-1"></div>
+        <div class="meteor meteor-2"></div>
+        <div class="meteor meteor-3"></div>
+        <div class="meteor meteor-4"></div>
+    </div>
+    
+    <!-- Noise Overlay -->
+    <div class="noise-overlay"></div>
+    
+    <!-- Header -->
+    <header class="main-header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <div class="logo-glow"></div>
+                <img src="resources/logo.png" alt="Sajrajt.cz Logo" class="logo-img">
+                <h1 class="logo-text">Sajrajt.cz</h1>
+            </a>
+            <div class="cart-icon">
+                <a href="Cart.html">
+                    <div class="cart-pulse"></div>
+                    <i class="fas fa-shopping-basket"></i>
+                    <span class="cart-badge">0</span>
+                </a>
+            </div>
+        </div>
+        <div class="header-progress-bar"></div>
+    </header>
+
+    <div class="kratom-leaves-container"></div>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-bg-shapes">
+            <div class="hero-shape hero-shape-1"></div>
+            <div class="hero-shape hero-shape-2"></div>
+            <div class="hero-shape hero-shape-3"></div>
+        </div>
+        
+        <div class="container">
+            <div class="hero-content">
+                <h2 class="glitch-heading" data-text="Máš chuť na pořádnou břečku?">Máš chuť na pořádnou břečku?</h2>
+                <p class="hero-tagline">
+                    <span>🍀 Autentické chuťové peklo pro kratomové nenažrance 🍀</span>
+                </p>
+                <a href="#products" class="btn hero-btn">
+                    <span class="btn-text">Prohlédnout produkty</span>
+                    <span class="btn-icon"><i class="fas fa-arrow-right"></i></span>
+                    <span class="btn-glow"></span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="hero-lights"></div>
+        <div class="hero-glow"></div>
+        <div id="scroll-indicator" class="scroll-indicator">
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+            <div class="arrows">
+                <span class="arrow arrow-1"></span>
+                <span class="arrow arrow-2"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dekorativní čára z listů -->
+    <div class="leaf-divider">
+        <img src="resources/leaf.png" alt="Kratom leaves" class="leaf-image">
+        <div class="leaf-glow"></div>
+    </div>
+
+    <!-- První částice pod hero sekcí -->
+    <div class="particle green-particle" style="top: 90vh; left: -15%;"></div>
+    <div class="particle teal-particle-small" style="top: 95vh; right: 15%;"></div>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="leaf-accent top-left"></div>
+        <div class="leaf-accent top-right"></div>
+        
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title gradient-heading" data-text="Co je Kratom?">Co je Kratom?</h2>
+                <div class="title-underline"></div>
+                <div class="section-subtitle">Objevte přírodní sílu tisíců let staré rostliny</div>
+            </div>
+            
+            <div class="about-grid">
+                <div class="feature-card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-perspective="500">
+                    <div class="card-background"></div>
+                    <div class="card-glow"></div>
+                    <div class="feature-icon">
+                        <span class="icon-border"></span>
+                        <i class="fas fa-history"></i>
+                        <div class="icon-glow"></div>
+                        <div class="icon-particles">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <h3>Historie</h3>
+                    <div class="card-divider"></div>
+                    <p>Kratom se používá po staletí v tradiční medicíně jihovýchodní Asie. Jeho léčivé vlastnosti byly objeveny již před tisíci lety.</p>
+                    <div class="card-corner top-left"></div>
+                    <div class="card-corner top-right"></div>
+                    <div class="card-corner bottom-left"></div>
+                    <div class="card-corner bottom-right"></div>
+                </div>
+                
+                <div class="feature-card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-perspective="500">
+                    <div class="card-background"></div>
+                    <div class="card-glow"></div>
+                    <div class="feature-icon">
+                        <span class="icon-border"></span>
+                        <i class="fas fa-globe-asia"></i>
+                        <div class="icon-glow"></div>
+                        <div class="icon-particles">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <h3>Původ</h3>
+                    <div class="card-divider"></div>
+                    <p>Pochází z deštných pralesů Thajska, Malajsie a Indonésie, kde roste jako strom dosahující výšky až 25 metrů.</p>
+                    <div class="card-corner top-left"></div>
+                    <div class="card-corner top-right"></div>
+                    <div class="card-corner bottom-left"></div>
+                    <div class="card-corner bottom-right"></div>
+                </div>
+                
+                <div class="feature-card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-perspective="500">
+                    <div class="card-background"></div>
+                    <div class="card-glow"></div>
+                    <div class="feature-icon">
+                        <span class="icon-border"></span>
+                        <i class="fas fa-heartbeat"></i>
+                        <div class="icon-glow"></div>
+                        <div class="icon-particles">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <h3>Účinky</h3>
+                    <div class="card-divider"></div>
+                    <p>Energizující, relaxační a léčivé účinky, které výrazně zvyšují kvalitu života. Každá odrůda nabízí unikátní zážitek.</p>
+                    <div class="card-corner top-left"></div>
+                    <div class="card-corner top-right"></div>
+                    <div class="card-corner bottom-left"></div>
+                    <div class="card-corner bottom-right"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section-bg-particles"></div>
+        <div class="leaf-accent bottom-left"></div>
+        <div class="leaf-accent bottom-right"></div>
+    </section>
+
+    <!-- Částice mezi About a Products -->
+    <div class="particle yellow-particle" style="top: 160vh; right: -10%;"></div>
+    <div class="particle green-particle-small" style="top: 165vh; left: 20%;"></div>
+
+    <!-- Products Section -->
+    <section id="products" class="products">
+        <div class="section-bg-glow"></div>
+        <div class="container">
+            <h2 class="section-title gradient-heading" data-animate>Naše Produkty</h2>
+            <div class="section-subtitle" data-animate>Pečlivě vybrané odrůdy nejvyšší kvality</div>
+            
+            <div class="product-grid">
+                <!-- Zelený Kratom -->
+                <div class="product product-1" data-tilt data-tilt-max="10" data-tilt-speed="400" data-animate>
+                    <div class="product-header green-bg">
+                        <img src="resources/Green.webp" alt="Zelený Kratom prášek" class="product-image">
+                        <i class="fas fa-running product-icon"></i>
+                        <div class="product-shine"></div>
+                    </div>
+                    <h3 class="product-title">Zelený Kratom</h3>
+                    <div class="product-highlight"></div>
+                    <p class="product-tagline">Nabije tě na celý den <span class="tagline-emoji">⚡</span></p>
+                    
+                    <div class="effect-indicators">
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-bolt"></i>
+                                <span>Energie</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar energy" style="--width: 85%;">
+                                    <div class="bar-tooltip">85%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-palette"></i>
+                                <span>Kreativita</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar creativity" style="--width: 70%;">
+                                    <div class="bar-tooltip">70%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-brain"></i>
+                                <span>Kognice</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar cognitive" style="--width: 60%;">
+                                    <div class="bar-tooltip">60%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-spa"></i>
+                                <span>Relax</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar chill" style="--width: 65%;">
+                                    <div class="bar-tooltip">65%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="product-footer">
+                        <div class="price-container">
+                            <p class="price">220 Kč <span class="price-small">/ 100g</span></p>
+                            <p class="price-note">Balení: 50g - 2Kg</p>
+                        </div>
+                        <a href="product/kratom/Green.html" class="btn product-btn">
+                            <span class="btn-text">Vybrat produkt</span>
+                            <span class="btn-icon"><i class="fas fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+    
+                <!-- Bílý Kratom -->
+                <div class="product product-2" data-tilt data-tilt-max="10" data-tilt-speed="400" data-animate>
+                    <div class="product-header white-bg">
+                        <img src="resources/White.webp" alt="Bílý Kratom prášek" class="product-image">
+                        <i class="fas fa-bullseye product-icon"></i>
+                        <div class="product-shine"></div>
+                    </div>
+                    <h3 class="product-title">Bílý Kratom</h3>
+                    <div class="product-highlight"></div>
+                    <p class="product-tagline">Projasní mysl a nakopne <span class="tagline-emoji">🧠</span></p>
+                    
+                    <div class="effect-indicators">
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-bolt"></i>
+                                <span>Energie</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar energy" style="--width: 100%;">
+                                    <div class="bar-tooltip">100%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-palette"></i>
+                                <span>Kreativita</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar creativity" style="--width: 70%;">
+                                    <div class="bar-tooltip">70%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-brain"></i>
+                                <span>Kognice</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar cognitive" style="--width: 80%;">
+                                    <div class="bar-tooltip">80%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-spa"></i>
+                                <span>Relax</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar chill" style="--width: 20%;">
+                                    <div class="bar-tooltip">20%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="product-footer">
+                        <div class="price-container">
+                            <p class="price">220 Kč <span class="price-small">/ 100g</span></p>
+                            <p class="price-note">Balení: 50g - 2Kg</p>
+                        </div>
+                        <a href="product/kratom/White.html" class="btn product-btn">
+                            <span class="btn-text">Vybrat produkt</span>
+                            <span class="btn-icon"><i class="fas fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+    
+                <!-- Červený Kratom -->
+                <div class="product product-3" data-tilt data-tilt-max="10" data-tilt-speed="400" data-animate>
+                    <div class="product-header red-bg">
+                        <img src="resources/Red.webp" alt="Červený Kratom prášek" class="product-image">
+                        <i class="fas fa-moon product-icon"></i>
+                        <div class="product-shine"></div>
+                    </div>
+                    <h3 class="product-title">Červený Kratom</h3>
+                    <div class="product-highlight"></div>
+                    <p class="product-tagline">Uvolní a připraví na spánek <span class="tagline-emoji">🌙</span></p>
+                    
+                    <div class="effect-indicators">
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-bolt"></i>
+                                <span>Energie</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar energy" style="--width: 25%;">
+                                    <div class="bar-tooltip">25%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-palette"></i>
+                                <span>Kreativita</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar creativity" style="--width: 60%;">
+                                    <div class="bar-tooltip">60%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-brain"></i>
+                                <span>Kognice</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar cognitive" style="--width: 30%;">
+                                    <div class="bar-tooltip">30%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">
+                                <i class="fas fa-spa"></i>
+                                <span>Relax</span>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar chill" style="--width: 95%;">
+                                    <div class="bar-tooltip">95%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="product-footer">
+                        <div class="price-container">
+                            <p class="price">220 Kč <span class="price-small">/ 100g</span></p>
+                            <p class="price-note">Balení: 50g - 2Kg</p>
+                        </div>
+                        <a href="product/kratom/Red.html" class="btn product-btn">
+                            <span class="btn-text">Vybrat produkt</span>
+                            <span class="btn-icon"><i class="fas fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="products-bg-particles"></div>
+    </section>
+
+    <!-- Částice mezi Products a Effects -->
+    <div class="particle teal-particle" style="top: 250vh; left: -10%;"></div>
+    <div class="particle purple-particle" style="top: 255vh; right: 10%; width: 20vw; height: 20vw;"></div>
+    
+    <!-- Effects Section -->
+    <section id="effects" class="effects">
+        <div class="container">
+            <h2 class="section-title gradient-heading">Účinky Kratomu</h2>
+            <div class="section-subtitle">Objevte širokou škálu přírodních benefitů</div>
+            
+            <div class="effects-grid">
+                <div class="effect-card energy" data-tilt data-tilt-max="5">
+                    <div class="card-glow energy-glow"></div>
+                    <div class="effect-icon">
+                        <i class="fas fa-bolt"></i>
+                        <div class="icon-pulse"></div>
+                    </div>
+                    <h3>Energie & Aktivita</h3>
+                    <div class="effect-content">
+                        <div class="effect-column">
+                            <ul>
+                                <li>Rychlé povzbuzení organismu</li>
+                                <li>Zvýšení fyzické výdrže</li>
+                                <li>Zlepšení mentální koncentrace</li>
+                                <li>Potlačení únavy</li>
+                            </ul>
+                        </div>
+                        <div class="effect-duration">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Účinek: 3-5 hodin</span>
+                        </div>
+                    </div>
+                    <div class="card-shine"></div>
+                </div>
+    
+                <div class="effect-card focus" data-tilt data-tilt-max="5">
+                    <div class="card-glow focus-glow"></div>
+                    <div class="effect-icon">
+                        <i class="fas fa-bullseye"></i>
+                        <div class="icon-pulse"></div>
+                    </div>
+                    <h3>Koncentrace & Výkon</h3>
+                    <div class="effect-content">
+                        <div class="effect-column">
+                            <ul>
+                                <li>Zlepšené kognitivní funkce</li>
+                                <li>Zvýšená produktivita</li>
+                                <li>Podpora kreativního myšlení</li>
+                                <li>Delší udržení pozornosti</li>
+                            </ul>
+                        </div>
+                        <div class="effect-duration">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Účinek: 4-6 hodin</span>
+                        </div>
+                    </div>
+                    <div class="card-shine"></div>
+                </div>
+    
+                <div class="effect-card relax" data-tilt data-tilt-max="5">
+                    <div class="card-glow relax-glow"></div>
+                    <div class="effect-icon">
+                        <i class="fas fa-spa"></i>
+                        <div class="icon-pulse"></div>
+                    </div>
+                    <h3>Uvolnění & Regenerace</h3>
+                    <div class="effect-content">
+                        <div class="effect-column">
+                            <ul>
+                                <li>Uvolnění svalového napětí</li>
+                                <li>Zmírnění stresu a úzkosti</li>
+                                <li>Podpora kvalitního spánku</li>
+                                <li>Celkové zklidnění organismu</li>
+                            </ul>
+                        </div>
+                        <div class="effect-duration">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Účinek: 5-7 hodin</span>
+                        </div>
+                    </div>
+                    <div class="card-shine"></div>
+                </div>
+            </div>
+            
+            <div class="effect-note-danger">
+                <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <p>Důležité: Účinky se mohou lišit v závislosti na metabolismu a dávkování. 
+                Nadměrné užívání může vést k nežádoucím účinkům.<br>
+                Není určeno pro osoby pod 18 let, těhotné a kojící ženy.</p>
+            </div>
+        </div>
+        <div class="effects-bg-particles"></div>
+    </section>
+
+    <!-- Částice mezi Effects a FAQ -->
+    <div class="particle green-particle" style="top: 330vh; right: -15%; width: 30vw; height: 30vw;"></div>
+    <div class="particle yellow-particle" style="top: 335vh; left: 10%; width: 15vw; height: 15vw;"></div>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="container">
+            <h2 class="section-title gradient-heading">Časté dotazy</h2>
+            <div class="section-subtitle">Odpovědi na nejčastější otázky o Kratomu</div>
+            
+            <div class="faq-grid">
+                <!-- FAQ Item 1 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Jaké je optimální dávkování pro začátečníky? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Doporučujeme začínat s dávkou 1-2 gramy pro seznámení s účinky. Postupně můžete zvyšovat na 3-4 gramy podle tolerance. Nikdy nepřekračujte 8 gramů na jednu dávku.</p>
+                    </div>
+                </div>
+    
+                <!-- FAQ Item 2 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Je kratom bezpečný při dlouhodobém užívání? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Při dodržování doporučeného dávkování a pravidelných přestávkách (2-3 dny týdně) je užívání považováno za bezpečné. Doporučujeme konzultaci s lékařem při pravidelném užívání.</p>
+                    </div>
+                </div>
+    
+                <!-- FAQ Item 3 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Mohu kombinovat kratom s alkoholem nebo léky? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Kombinace s alkoholem nebo psychoaktivními látkami se důrazně nedoporučuje. Při užívání léků vždy konzultujte s lékařem.</p>
+                    </div>
+                </div>
+    
+                <!-- FAQ Item 4 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Jaký je rozdíl mezi jednotlivými druhy kratomu? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Rozdíly jsou v obsahu alkaloidů:
+                            <ul>
+                                <li><strong>Zelený:</strong> Vyvážené účinky (energie + relaxace)</li>
+                                <li><strong>Bílý:</strong> Stimulační a energizující</li>
+                                <li><strong>Červený:</strong> Relaxační a analgetický</li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+    
+                <!-- FAQ Item 5 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Jak poznám kvalitní kratom? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Kvalitní kratom má:
+                            <ul>
+                                <li>Sypkou konzistenci bez hrudek</li>
+                                <li>Svěží zelenou barvu (podle typu)</li>
+                                <li>Charakteristickou bylinnou vůni</li>
+                                <li>Certifikát laboratorního testování</li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+    
+                <!-- FAQ Item 6 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Jaké jsou možnosti platby a dopravy? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Nabízíme:
+                            <ul>
+                                <li>Okamžitý bankovní převod</li>
+                                <li>Dobírku (pouze v ČR)</li>
+                                <li>Kryptoměny (BTC, ETH)</li>
+                                <li>Expresní doručení do 24h</li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+    
+                <!-- FAQ Item 7 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Je možné kratom užívat při dietě? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Kratom sám o sobě neobsahuje významné kalorie. Pro lepší vstřebávání doporučujeme užívat nalačno nebo s lehkým jídlem.</p>
+                    </div>
+                </div>
+    
+                <!-- FAQ Item 8 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Jak probíhá balení a skladování? <i class="fas fa-chevron-down"></i></h3>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Všechny produkty:
+                            <ul>
+                                <li>Jsou hermeticky baleny v aluminizovaných sáčcích</li>
+                                <li>Mají ochranný ZIP uzávěr</li>
+                                <li>Doporučené skladování: 15-25°C v suchu</li>
+                                <li>Trvanlivost: 24 měsíců od data balení</li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="faq-show-more">
+                    <button id="faqToggleBtn" class="faq-toggle-btn">
+                        Zobrazit více <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+    
+            <div class="effect-note">
+                <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <p>Upozornění: Informace slouží pouze pro vzdělávací účely.</p>
+            </div>
+        </div>
+        <div class="faq-bg-particles"></div>
+    </section>
+
+    <!-- Částice mezi FAQ a Contact -->
+    <div class="particle purple-particle" style="top: 410vh; left: -5%; width: 25vw; height: 25vw;"></div>
+    <div class="particle teal-particle-small" style="top: 415vh; right: 20%;"></div>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="contact-bg-glow"></div>
+        <div class="container">
+            <h2 class="section-title gradient-heading" data-animate>Kontakt</h2>
+            <div class="section-subtitle" data-animate>Jsme tu pro vás, neváhejte nás kontaktovat</div>
+            
+            <div class="contact-grid">
+                <!-- Contact Info -->
+                <div class="contact-info">
+                    <div class="contact-card email-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-animate>
+                        <div class="card-glass-effect"></div>
+                        <div class="card-glow"></div>
+                        <div class="contact-icon pulse">
+                            <i class="fas fa-envelope"></i>
+                            <div class="icon-rays"></div>
+                            <div class="icon-particles">
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <h3>E-mail</h3>
+                        <a href="mailto:info@sajrajt.cz" class="contact-link glow">info@sajrajt.cz</a>
+                        <div class="hologram-effect"></div>
+                        <div class="card-corner top-left"></div>
+                        <div class="card-corner top-right"></div>
+                        <div class="card-corner bottom-left"></div>
+                        <div class="card-corner bottom-right"></div>
+                    </div>
+    
+                    <div class="contact-card instagram-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-animate>
+                        <div class="card-glass-effect"></div>
+                        <div class="card-glow"></div>
+                        <div class="contact-icon pulse">
+                            <i class="fab fa-instagram"></i>
+                            <div class="icon-rays"></div>
+                            <div class="icon-particles">
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <h3>Instagram</h3>
+                        <a href="https://instagram.com/sajrajt.cz" target="_blank" class="contact-link glow">@sajrajt.cz</a>
+                        <div class="hologram-effect"></div>
+                        <div class="card-corner top-left"></div>
+                        <div class="card-corner top-right"></div>
+                        <div class="card-corner bottom-left"></div>
+                        <div class="card-corner bottom-right"></div>
+                    </div>
+    
+                    <div class="contact-card tiktok-card" data-tilt data-tilt-max="10" data-tilt-speed="400" data-animate>
+                        <div class="card-glass-effect"></div>
+                        <div class="card-glow"></div>
+                        <div class="contact-icon pulse">
+                            <i class="fab fa-tiktok"></i>
+                            <div class="icon-rays"></div>
+                            <div class="icon-particles">
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <h3>TikTok</h3>
+                        <a href="https://tiktok.com/@sajrajt" target="_blank" class="contact-link glow">@sajrajt</a>
+                        <div class="hologram-effect"></div>
+                        <div class="card-corner top-left"></div>
+                        <div class="card-corner top-right"></div>
+                        <div class="card-corner bottom-left"></div>
+                        <div class="card-corner bottom-right"></div>
+                    </div>
+                </div>
+    
+                <!-- Contact Form -->
+                <form class="contact-form" data-animate>
+                    <div class="form-glass-effect"></div>
+                    <div class="form-inner-glow"></div>
+                    
+                    <div class="form-group">
+                        <input type="text" id="name" class="form-input" required>
+                        <label for="name"><i class="fas fa-user"></i> Jméno</label>
+                        <div class="line-effect"></div>
+                        <div class="input-glow"></div>
+                    </div>
+    
+                    <div class="form-group">
+                        <input type="email" id="email" class="form-input" required>
+                        <label for="email"><i class="fas fa-at"></i> E-mail</label>
+                        <div class="line-effect"></div>
+                        <div class="input-glow"></div>
+                    </div>
+    
+                    <div class="form-group">
+                        <textarea id="message" rows="5" class="form-input" required></textarea>
+                        <label for="message"><i class="fas fa-comment-alt"></i> Zpráva</label>
+                        <div class="line-effect"></div>
+                        <div class="input-glow"></div>
+                    </div>
+    
+                    <button type="submit" class="btn quantum-btn">
+                        <span class="btn-text">Odeslat zprávu</span>
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <i class="fas fa-paper-plane"></i>
+                        <div class="btn-glow"></div>
+                        <div class="btn-shine"></div>
+                    </button>
+                    
+                    <div class="form-corner top-left"></div>
+                    <div class="form-corner top-right"></div>
+                    <div class="form-corner bottom-left"></div>
+                    <div class="form-corner bottom-right"></div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="contact-particles"></div>
+        <div class="contact-grid-lines">
+            <div class="grid-line-h grid-line-h1"></div>
+            <div class="grid-line-h grid-line-h2"></div>
+            <div class="grid-line-h grid-line-h3"></div>
+            <div class="grid-line-v grid-line-v1"></div>
+            <div class="grid-line-v grid-line-v2"></div>
+            <div class="grid-line-v grid-line-v3"></div>
+        </div>
+    </section>
+
+    <!-- Částice před footerem -->
+    <div class="particle green-particle-small" style="top: 490vh; left: 30%;"></div>
+    <div class="particle yellow-particle" style="top: 495vh; right: 5%; width: 20vw; height: 20vw;"></div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-glow"></div>
+        <div class="footer-container">
+            <div class="footer-content">
+                <a href="#" class="footer-logo">
+                    <img src="resources/logo.png" alt="Sajrajt.cz">
+                    <span>Sajrajt.cz</span>
+                </a>
+                
+                <div class="footer-links">
+                    <a href="/obchodni-podminky" class="footer-link">Obchodní podmínky</a>
+                    <a href="/zasady-ochrany-soukromi" class="footer-link">Zásady ochrany soukromí</a>
+                </div>
+                
+                <div class="footer-bottom">
+                    <p class="copyright">
+                        © 2024 Sajrajt.cz | Všechna práva vyhrazena
+                    </p>
+                    <p class="made-with-love">
+                        <span class="pulse">❤️</span> Vyrobeno s láskou v ČR <span class="pulse">❤️</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="footer-wave">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                    <path fill="rgba(0, 230, 118, 0.05)" d="M0,128L48,144C96,160,192,192,288,181.3C384,171,480,117,576,101.3C672,85,768,107,864,138.7C960,171,1056,213,1152,213.3C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                </svg>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <div id="back-to-top" class="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+        <span class="back-to-top-glow"></span>
+    </div>
+
+    <!-- Load jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Then load Tilt.js that depends on jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tilt.js/1.2.1/tilt.jquery.min.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
