@@ -1,0 +1,23 @@
+// košík
+upravit přidávání do košíku aby se zobrazovalo to co je v cookies 
+udělat křížek u produktu trošku světlejší
+pokud není zatím nastavená doprava tak bude X Kč
+u tlačítka Zpět do obchodu trošku změnit barvy při hoveru 
+k platba kartou přidat více ikonek pokud půjde 
+
+// Košík backend
+kompletní backend pro košík
+Slevové kody
+Platební brána na Online platba kartou
+Možnost upravit u Bankovní převod že se zobrazí pokyny k platbě na učet u dokončení objednávky a pošlou se instrukce na mail 
+u tlačítka dokončit objednávku změnit na objednat s povinností zaplatit a dále modal který se zeptá jestli opravdu hodláte objednávku poslat
+udělat funkční tlačítko faktura na konci objednávky které ukáže už udělanou fakturu v pdf na stránce nějakého uložiště faktur zabezpečeného  
+
+// SEO
+přidat kompletní seo na stránku a další věci ohladně headu na stránce 
+
+// Systém zboží Sajrajt.cz interní systém 
+udělat kompletní systém pro správu objednávek 
+
+//Meta Pixel
+udělat kompletní meta pixel pro stránku sajrajt.cz
