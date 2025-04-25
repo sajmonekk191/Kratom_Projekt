@@ -83,6 +83,7 @@
                                     <i class="fas fa-check"></i>
                                 </button>
                             </div>
+                            <!-- Zde se bude zobrazovat aplikovaný kupón (JS vloží tento element) -->
                         </div>
                     </div>
                     
@@ -105,9 +106,9 @@
                                 <span>Způsob platby</span>
                                 <span id="payment">Dle výběru</span>
                             </div>
-                            <div class="summary-row discount">
+                            <div class="summary-row discount" style="display: none;">
                                 <span>Sleva</span>
-                                <span id="discount">X Kč</span>
+                                <span id="discount">0 Kč</span>
                             </div>
                             <div class="summary-total">
                                 <span>Celková cena</span>
@@ -212,7 +213,7 @@
                                         <div class="option-price">149 Kč</div>
                                     </div>
                                     <div class="option-body">
-                                        <p>Expresní doručení na adresu v okolí Brumov-Bylnice (do 10 km).</p>
+                                        <p>Expresní doručení na adresu v okolí Brumov-Bylnice (do 15 km).</p>
                                         <div class="delivery-time">
                                             <i class="fas fa-clock"></i> Doručíme do 2 Hodin !
                                         </div>
@@ -237,7 +238,23 @@
                                         <div class="option-price free">Zdarma</div>
                                     </div>
                                     <div class="option-body">
-                                        <p>Osobní odběr přímo na našem skladě v Nedašově nebo Brumově.</p>
+                                        <p>Prosím před příjezdem volat - 732 189 053</p>
+                                        <div class="pickup-locations">
+                                            <div class="pickup-location">
+                                                <div class="location-icon"><i class="fas fa-map-marker-alt"></i></div>
+                                                <div class="location-details">
+                                                    <strong>Sklad Nedašov</strong>
+                                                    <span>Nedašov 11, 763 32 Nedašov</span>
+                                                </div>
+                                            </div>
+                                            <div class="pickup-location">
+                                                <div class="location-icon"><i class="fas fa-map-marker-alt"></i></div>
+                                                <div class="location-details">
+                                                    <strong>Pobočka Brumov</strong>
+                                                    <span>Družba 1193, 763 31 Brumov-Bylnice</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="check-indicator">
                                         <i class="fas fa-check"></i>

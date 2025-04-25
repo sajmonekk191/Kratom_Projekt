@@ -7,14 +7,12 @@ Upravit designové chyby
 Udělat funkční vyhledávání 
 Kompletně mobilní responzivita 
  
+
+ 
 // Košík backend
-zabanovat prohlížení faktur tady http://127.0.0.1:3000/admin/faktury/FV20250001.pdf
-Slevové kody
-v obchodu přidat možnost nahoře v každém produktu přepínání Zelený bíly a červený kratom pro lepší mobilitu
-Kompletní mobilní responzivita
+Kompletní mobilní responzivita pro celý web i Košík 
 
-
-// Ocheana osobních udaju a obchodní podmínky
+// Přidat nějaký dárek k objednávce
 
 // SEO
 přidat kompletní seo na stránku a další věci ohladně headu na stránce 
@@ -22,3 +20,48 @@ přidat kompletní seo na stránku a další věci ohladně headu na stránce
 //Meta Pixel
 udělat kompletní meta pixel pro stránku sajrajt.cz
 
+// Nginx nastavení reverse - zabanovat prohlížení faktur tady http://127.0.0.1:3000/admin/faktury/FV20250001.pdf
+
+
+
+
+
+
+
+
+
+
+
+INSERT INTO coupons (
+    code, discount_type, discount_value, min_order_value, max_discount,
+    description, one_per_customer, usage_limit, valid_from, valid_until, active
+) VALUES (
+    'KRA10M',  -- Kód slevy (vždy ve velkých písmenech)
+    'percentage', -- Typ slevy (percentage nebo fixed)
+    10,          -- Hodnota slevy (10%)
+    0,           -- Minimální hodnota objednávky (0 = žádný limit)
+    NULL,        -- Maximální sleva (NULL = bez limitu)
+    '10% sleva na celý nákup', -- Popis slevy
+    1,           -- Jeden kód na zákazníka (1 = ano, 0 = ne)
+    NULL,        -- Limit počtu použití (NULL = bez limitu)
+    NULL,        -- Platnost od (NULL = bez omezení)
+    NULL,        -- Platnost do (NULL = bez omezení)
+    1            -- Aktivní (1 = ano, 0 = ne)
+);
+
+INSERT INTO coupons (
+    code, discount_type, discount_value, min_order_value, max_discount,
+    description, one_per_customer, usage_limit, valid_from, valid_until, active
+) VALUES (
+    'BLATICKO15',
+    'percentage',
+    15,            -- 15% sleva
+    0,             -- Bez minimální hodnoty objednávky
+    500,           -- Maximální sleva 200 Kč
+    'Časově omezená 15% sleva (max 200 Kč)',
+    2,             -- Jeden kód na zákazníka
+    200,           -- Limit na 100 použití
+    '2025-01-01',  -- Platnost od začátku roku 2025
+    '2026-12-31',  -- Platnost do konce roku 2025
+    1              -- Aktivní
+);

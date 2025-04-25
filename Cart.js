@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.shippingPrice = 79; // Základní cena dopravy (Zásilkovna)
     window.paymentFee = 0; // Základní cena platby
     let discountAmount = 0; // Sleva
-    let appliedCoupon = ''; // Aplikovaný kupón
+    let appliedCoupon = null; // Aplikovaný kupón
     
     // ===== SELEKTORY ELEMENTŮ =====
     // Sekce
@@ -65,7 +65,14 @@ document.addEventListener('DOMContentLoaded', function() {
     window.updateConfirmationWithOrderData = updateConfirmationWithOrderData;
     window.playOrderConfetti = playOrderConfetti;
     window.saveCart = saveCart;
-    
+    window.appliedCoupon = appliedCoupon;
+    window.discountAmount = discountAmount;
+    window.applyCouponWithApi = applyCouponWithApi;
+    window.removeCoupon = removeCoupon;
+    window.displayAppliedCoupon = displayAppliedCoupon;
+    window.initializeCoupons = initializeCoupons;
+    window.calculateSubtotal = calculateSubtotal;
+    window.updateAllOrderSummaries = updateAllOrderSummaries;
 
     if (confirmationSection) {
         confirmationSection.style.display = 'none';
@@ -103,6 +110,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
         // Nastavení proklikávání kroků
         setupProgressStepsNavigation();
+
+        // Inicializace kupónů
+        initializeCoupons();
+    }
+
+    function initializeCoupons() {
+        // Přidání obsluhy klávesy Enter v poli pro kupón
+        const couponInput = document.getElementById('coupon-code');
+        if (couponInput) {
+            couponInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyCouponWithApi();
+                }
+            });
+        }
     }
     
     /**
@@ -261,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Slevový kupón
         const applyBtn = document.getElementById('apply-coupon');
         if (applyBtn) {
-            applyBtn.addEventListener('click', applyCoupon);
+            applyBtn.addEventListener('click', applyCouponWithApi);
         }
         
         // Změna způsobu dopravy
@@ -487,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Slevový kupón
             const applyBtn = document.getElementById('apply-coupon');
             if (applyBtn) {
-                applyBtn.addEventListener('click', applyCoupon);
+                applyBtn.addEventListener('click', applyCouponWithApi);
             }
         }
     }
@@ -960,11 +983,16 @@ document.addEventListener('DOMContentLoaded', function() {
             price: Number(window.paymentFee)  // Zajistíme, že je to číslo
         };
         
+        const discount = window.discountAmount || 0;
+
         // Příprava poznámky
         const note = document.getElementById('note').value;
         
         // Příprava informací o kupónu, pokud byl použit
-        const coupon = appliedCoupon || null;
+        const coupon = appliedCoupon ? {
+            code: appliedCoupon.code,
+            discount: discountAmount
+        } : null;
         
         // Sestavení kompletních dat objednávky
         const subtotal = calculateSubtotal();
@@ -975,14 +1003,21 @@ document.addEventListener('DOMContentLoaded', function() {
             items,
             shipping,
             payment,
-            subtotal: Number(subtotal),  // Zajistíme, že je to číslo
-            total: Number(total),  // Zajistíme, že je to číslo
+            subtotal: Number(subtotal),
+            total: Number(total),
+            discount: Number(discount),
             note,
-            coupon
+            coupon: appliedCoupon ? {
+                code: appliedCoupon.code,
+                discount: discountAmount,
+                discount_type: appliedCoupon.type,
+                discount_value: appliedCoupon.value,
+                description: appliedCoupon.description
+            } : null
         };
     }
-    // Funkce pro odeslání objednávky na server  
-    function completeOrderWithApi() {
+// Funkce pro odeslání objednávky na server  
+function completeOrderWithApi() {
     try {
         // Validace formuláře
         if (!validateContactForm()) {
@@ -999,6 +1034,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Příprava dat objednávky
         const orderData = prepareOrderData();
         console.log('Připravená data objednávky:', orderData);
+        
+        // Přidáme informaci o použitém kupónu
+        if (window.appliedCoupon) {
+            orderData.coupon = {
+                code: window.appliedCoupon.code,
+                discount: window.discountAmount,
+                discount_type: window.appliedCoupon.type,
+                discount_value: window.appliedCoupon.value,
+                description: window.appliedCoupon.description
+            };
+        }
         
         // Volání API pro vytvoření objednávky
         fetch('http://127.0.0.1:5000/api/shop/create-order', {
@@ -1082,6 +1128,64 @@ document.addEventListener('DOMContentLoaded', function() {
         showNotification('Došlo k neočekávané chybě: ' + error.message, 'error');
     }
 }
+
+function displayAppliedCoupon(coupon) {
+    const couponContainer = document.querySelector('.coupon-container');
+    if (!couponContainer || !coupon) return;
+    
+    // Vyčistit případné existující zobrazení kupónu
+    const existingDisplay = couponContainer.querySelector('.coupon-applied');
+    if (existingDisplay) {
+        existingDisplay.remove();
+    }
+    
+    // Skrýt vstupní pole a tlačítko
+    const couponInputGroup = couponContainer.querySelector('.coupon-input-group');
+    if (couponInputGroup) {
+        couponInputGroup.style.display = 'none';
+    }
+    
+    // Vytvořit element pro zobrazení aplikovaného kupónu
+    const couponApplied = document.createElement('div');
+    couponApplied.className = 'coupon-applied';
+    couponApplied.innerHTML = `
+        <div class="coupon-info">
+            <span class="coupon-badge">${coupon.code}</span>
+            <span class="coupon-description">${coupon.description}</span>
+        </div>
+        <button type="button" class="remove-coupon-btn" title="Odstranit kupón">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    // Přidat nový element
+    couponContainer.appendChild(couponApplied);
+    
+    // Přidat event listener pro odstranění kupónu
+    const removeBtn = couponApplied.querySelector('.remove-coupon-btn');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            // Odstranit kupón
+            removeCoupon();
+            
+            // Zobrazit vstupní pole a tlačítko
+            if (couponInputGroup) {
+                couponInputGroup.style.display = 'flex';
+            }
+            
+            // Odstranit zobrazení kupónu
+            couponApplied.remove();
+        });
+    }
+    
+    // Zobrazit řádek slevy v souhrnu
+    const discountRows = document.querySelectorAll('.summary-rows .discount');
+    discountRows.forEach(row => {
+        row.style.display = ''; // Ujistíme se, že je řádek viditelný
+    });
+}
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Připojuji vylepšenou funkci k tlačítku 'Dokončit objednávku'");
@@ -1891,6 +1995,9 @@ function updateAllOrderSummaries() {
     // Najdeme všechny řádky se slevou
     const discountRows = document.querySelectorAll('.summary-rows .discount');
     
+    // OPRAVA: Získání aktuální hodnoty slevy z globální proměnné
+    const discountAmount = window.discountAmount || 0;
+    
     // Zobrazit nebo skrýt řádky se slevou podle toho, zda je sleva uplatněna
     if (discountAmount > 0) {
         // Pokud je sleva uplatněna, zobrazíme řádky
@@ -1903,54 +2010,64 @@ function updateAllOrderSummaries() {
             row.style.display = 'none';
         });
     }
-// Najdeme všechny elementy pro shrnutí objednávky ve všech sekcích
-const allSubtotalElements = document.querySelectorAll('.summary-rows .summary-row:first-child span:last-child');
-const allShippingElements = document.querySelectorAll('.summary-rows .summary-row:nth-child(2) span:last-child, #summary-shipping');
-const allPaymentElements = document.querySelectorAll('.summary-rows .summary-row:nth-child(3) span:last-child, #summary-payment');
-const allDiscountElements = document.querySelectorAll('.summary-rows .discount span:last-child, #summary-discount');
-const allTotalElements = document.querySelectorAll('.summary-total span:last-child, #summary-total');
+    
+    // Najdeme všechny elementy pro shrnutí objednávky ve všech sekcích
+    const allSubtotalElements = document.querySelectorAll('.summary-rows .summary-row:first-child span:last-child');
+    const allShippingElements = document.querySelectorAll('.summary-rows .summary-row:nth-child(2) span:last-child, #summary-shipping');
+    const allPaymentElements = document.querySelectorAll('.summary-rows .summary-row:nth-child(3) span:last-child, #summary-payment');
+    const allDiscountElements = document.querySelectorAll('.summary-rows .discount span:last-child, #summary-discount');
+    const allTotalElements = document.querySelectorAll('.summary-total span:last-child, #summary-total');
 
-// Aktualizace cen v hlavním košíku
-if (subtotalEl) subtotalEl.textContent = `${subtotal} Kč`;
-if (shippingEl) shippingEl.textContent = shippingText;
+    // Aktualizace cen v hlavním košíku
+    const subtotalEl = document.getElementById('subtotal');
+    const shippingEl = document.getElementById('shipping');
+    const discountEl = document.getElementById('discount');
+    const totalEl = document.getElementById('total');
+    
+    if (subtotalEl) subtotalEl.textContent = `${subtotal} Kč`;
+    if (shippingEl) shippingEl.textContent = shippingText;
 
-// Aktualizace způsobu platby v hlavním košíku
-const paymentEl = document.getElementById('payment');
-if (paymentEl) paymentEl.textContent = paymentText;
+    // Aktualizace způsobu platby v hlavním košíku
+    const paymentEl = document.getElementById('payment');
+    if (paymentEl) paymentEl.textContent = paymentText;
 
-if (discountEl) {
-    // Pokud je sleva, zobrazíme řádek
-    const discountRow = discountEl.closest('.summary-row');
-    if (discountRow) {
-        discountRow.style.display = discountAmount > 0 ? '' : 'none';
+    if (discountEl) {
+        // Pokud je sleva, zobrazíme řádek
+        const discountRow = discountEl.closest('.summary-row');
+        if (discountRow) {
+            discountRow.style.display = discountAmount > 0 ? '' : 'none';
+        }
+        discountEl.textContent = discountAmount > 0 ? `-${discountAmount} Kč` : '0 Kč';
     }
-    discountEl.textContent = discountAmount > 0 ? `-${discountAmount} Kč` : '0 Kč';
+    if (totalEl) totalEl.textContent = `${total} Kč`;
+
+    // Aktualizace všech nalezených elementů
+    allSubtotalElements.forEach(element => {
+        element.textContent = `${subtotal} Kč`;
+    });
+
+    allShippingElements.forEach(element => {
+        element.textContent = shippingText;
+    });
+
+    allPaymentElements.forEach(element => {
+        element.textContent = paymentText;
+    });
+
+    allDiscountElements.forEach(element => {
+        element.textContent = discountAmount > 0 ? `-${discountAmount} Kč` : '0 Kč';
+    });
+
+    allTotalElements.forEach(element => {
+        element.textContent = `${total} Kč`;
+    });
+    
+    // Aktualizace hodnoty v modálním okně pro potvrzení objednávky, pokud existuje
+    const modalTotalPrice = document.getElementById('modal-total-price');
+    if (modalTotalPrice) {
+        modalTotalPrice.textContent = `${total} Kč`;
+    }
 }
-if (totalEl) totalEl.textContent = `${total} Kč`;
-
-// Aktualizace všech nalezených elementů
-allSubtotalElements.forEach(element => {
-    element.textContent = `${subtotal} Kč`;
-});
-
-allShippingElements.forEach(element => {
-    element.textContent = shippingText;
-});
-
-allPaymentElements.forEach(element => {
-    element.textContent = paymentText;
-});
-
-allDiscountElements.forEach(element => {
-    element.textContent = discountAmount > 0 ? `-${discountAmount} Kč` : '0 Kč';
-});
-
-allTotalElements.forEach(element => {
-    element.textContent = `${total} Kč`;
-});
-}
-
-
 
 /**
 * Rozšíření funkcí o ukládání a načítání preferované dopravy a platby
@@ -2002,7 +2119,7 @@ updatePrices();
 * Výpočet mezisoučtu
 */
 function calculateSubtotal() {
-return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 }
 
 /**
@@ -2019,8 +2136,12 @@ function calculateTotal() {
     const actualShippingPrice = deliverySelected ? window.shippingPrice : 0;
     const actualPaymentFee = paymentSelected ? window.paymentFee : 0;
 
+    // Důležitá oprava - ujistíme se, že window.discountAmount je definované
+    // a použijeme správnou globální proměnnou
+    const discountValue = typeof window.discountAmount !== 'undefined' ? window.discountAmount : 0;
+    
     // Make sure discount doesn't exceed the subtotal
-    const safeDiscountAmount = Math.min(discountAmount, subtotal);
+    const safeDiscountAmount = Math.min(discountValue, subtotal);
 
     // Calculate total and ensure it's not negative
     const calculatedTotal = subtotal + actualShippingPrice + actualPaymentFee - safeDiscountAmount;
@@ -2104,117 +2225,49 @@ if (selectedPayment) {
 // Aktualizace cen
 updatePrices();
 }
-
-/**
-* Aplikace slevového kupónu
-*/
-
-function applyCoupon() {
-    const couponInput = document.getElementById('coupon-code');
-
-    if (!couponInput || !couponInput.value.trim()) {
-        showNotification('Zadejte prosím slevový kód', 'warning');
-        return;
-    }
-
-    const couponCode = couponInput.value.trim().toUpperCase();
-
-    // Kontrola, zda již nebyl použit tento kupón
-    if (appliedCoupon === couponCode) {
-        showNotification('Tento kupón již byl použit', 'warning');
-        return;
-    }
-
-    // Simulace ověření kupónu (v reálné aplikaci by bylo napojeno na API)
-    showLoader();
-
-    setTimeout(() => {
-        hideLoader();
-        
-        // Subtotal pro výpočet slevy
-        const subtotal = calculateSubtotal();
-        
-        // Ověření platnosti kupónu
-        switch (couponCode) {
-            case 'KRATOM10':
-                // 10% sleva
-                discountAmount = Math.round(subtotal * 0.1);
-                appliedCoupon = couponCode;
-                showNotification('Sleva 10% byla aplikována', 'success');
-                break;
-            
-            case 'DOPRAVAZDARMA':
-                // Doprava zdarma
-                discountAmount = window.shippingPrice;
-                appliedCoupon = couponCode;
-                showNotification('Doprava zdarma byla aplikována', 'success');
-                break;
-            
-            case 'SAJRAJT2025':
-                // 15% sleva
-                discountAmount = Math.round(subtotal * 0.15);
-                appliedCoupon = couponCode;
-                showNotification('Sleva 15% byla aplikována', 'success');
-                break;
-            
-            default:
-                showNotification('Neplatný slevový kód', 'error');
-                couponInput.classList.add('error');
-                setTimeout(() => {
-                    couponInput.classList.remove('error');
-                }, 500);
-                return;
-        }
-        
-        // Ensure discount doesn't exceed subtotal
-        discountAmount = Math.min(discountAmount, subtotal);
-        
-        // Vymazání vstupního pole
-        couponInput.value = '';
-        couponInput.placeholder = `Kupón ${couponCode} aplikován`;
-        couponInput.classList.add('success');
-        setTimeout(() => {
-            couponInput.classList.remove('success');
-        }, 1500);
-        
-        // Aktualizace cen
-        updateAllOrderSummaries();
-        
-        // Efekt zvýraznění slevy
-        const discountElements = document.querySelectorAll('.summary-rows .discount span:last-child');
-        discountElements.forEach(element => {
-            element.style.color = 'var(--success)';
-            element.style.transition = 'color 0.3s ease';
-            
-            setTimeout(() => {
-                element.style.color = '';
-            }, 1500);
-        });
-    }, 800);
-}
-
     /**
     * Odstranění slevového kupónu
     */
     function removeCoupon() {
-        if (appliedCoupon) {
-            // Resetování slevy
-            discountAmount = 0;
-            appliedCoupon = '';
-            
-            // Aktualizace cen
-            updateAllOrderSummaries();
-            
-            // Resetování pole pro zadání kupónu
-            const couponInput = document.getElementById('coupon-code');
-            if (couponInput) {
-                couponInput.value = '';
-                couponInput.placeholder = 'Zadejte slevový kód...';
-            }
-            
-            // Informování uživatele
-            showNotification('Slevový kupón byl odstraněn', 'info');
+        // Resetování slevy v globálních proměnných
+        window.discountAmount = 0;
+        window.appliedCoupon = null;
+        
+        console.log("Kupón byl odstraněn:", {
+            appliedCoupon: window.appliedCoupon,
+            discountAmount: window.discountAmount
+        });
+        
+        // Aktualizace cen
+        updateAllOrderSummaries();
+        
+        // Resetování pole pro zadání kupónu
+        const couponInput = document.getElementById('coupon-code');
+        if (couponInput) {
+            couponInput.value = '';
+            couponInput.placeholder = 'Zadejte slevový kód...';
         }
+        
+        // Skrytí řádku se slevou
+        const discountRows = document.querySelectorAll('.summary-rows .discount');
+        discountRows.forEach(row => {
+            row.style.display = 'none';
+        });
+        
+        // Zobrazení vstupního pole pro kupón
+        const couponInputGroup = document.querySelector('.coupon-input-group');
+        if (couponInputGroup) {
+            couponInputGroup.style.display = 'flex';
+        }
+        
+        // Odstranění zobrazení aplikovaného kupónu
+        const couponApplied = document.querySelector('.coupon-applied');
+        if (couponApplied) {
+            couponApplied.remove();
+        }
+        
+        // Informování uživatele
+        showNotification('Slevový kupón byl odstraněn', 'info');
     }
     
     /**
@@ -2459,18 +2512,85 @@ function applyCoupon() {
             paymentAmountEl.textContent = `${order.total} Kč`;
         }
         
-        // Create download invoice button event listener
+        // Create download invoice button event listener with secured download
         const downloadInvoiceBtn = document.getElementById('download-invoice-btn');
         if (downloadInvoiceBtn) {
-            downloadInvoiceBtn.addEventListener('click', function(e) {
+            // Odstranění všech existujících event listenerů pomocí klonování
+            const newDownloadBtn = downloadInvoiceBtn.cloneNode(true);
+            downloadInvoiceBtn.parentNode.replaceChild(newDownloadBtn, downloadInvoiceBtn);
+            
+            // Uložení informací o objednávce do lokálního úložiště
+            localStorage.setItem('lastOrderNumber', order.order_number);
+            
+            // Přidání nového event listeneru s opravou
+            newDownloadBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                window.location.href = `/api/invoices/${order.invoice_number}/download`;
+                
+                // Zobrazení loaderu
+                showLoader();
+                
+                // Použijeme číslo objednávky pro získání/vytvoření faktury
+                fetch(`/api/invoices/${order.order_number}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success' && data.invoice) {
+                        // Spustíme stahování faktury
+                        window.location.href = `/api/invoices/${data.invoice.invoice_number}/download`;
+                        
+                        // Skryjeme loader po krátké prodlevě
+                        setTimeout(() => {
+                            hideLoader();
+                        }, 1000);
+                    } else {
+                        hideLoader();
+                        showNotification(data.message || 'Nepodařilo se získat fakturu', 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoader();
+                    console.error('Chyba při získávání faktury:', error);
+                    showNotification('Došlo k chybě při přístupu k faktuře', 'error');
+                });
             });
         }
-
-        isDownloadSetup = false;
         
-        setupInvoiceDownload();
+        // Zobrazení informace o slevě, pokud byla použita
+        if (order.discount && order.discount > 0) {
+            const orderDetails = document.querySelector('.order-details');
+            if (orderDetails) {
+                // Kontrola, zda již existuje řádek se slevou
+                let discountRow = orderDetails.querySelector('.detail-row.discount');
+                
+                if (!discountRow) {
+                    // Vytvoříme nový řádek se slevou
+                    discountRow = document.createElement('div');
+                    discountRow.className = 'detail-row discount';
+                    discountRow.innerHTML = `
+                        <span>Sleva:</span>
+                        <span id="order-discount">-${order.discount} Kč</span>
+                    `;
+                    
+                    // Vložíme řádek před celkovou cenu
+                    const totalRow = orderDetails.querySelector('.detail-row:last-child');
+                    if (totalRow) {
+                        orderDetails.insertBefore(discountRow, totalRow);
+                    } else {
+                        orderDetails.appendChild(discountRow);
+                    }
+                } else {
+                    // Aktualizujeme existující řádek
+                    const discountValue = discountRow.querySelector('span:last-child');
+                    if (discountValue) {
+                        discountValue.textContent = `-${order.discount} Kč`;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -3244,6 +3364,17 @@ async function loadShippingPaymentMethods() {
 }
 
 // Volání API pro ověření slevového kupónu
+/**
+ * Oprava pro chybu "appliedCoupon is not defined"
+ * Tento kód by měl být umístěn hned na začátku Cart.js souboru 
+ * v sekci inicializace proměnných (kolem řádku 8)
+ */
+
+// ...pokračování stávajícího kódu...
+
+/**
+ * Funkce applyCouponWithApi, která nyní kontroluje existenci proměnných
+ */
 function applyCouponWithApi() {
     const couponInput = document.getElementById('coupon-code');
     
@@ -3255,7 +3386,7 @@ function applyCouponWithApi() {
     const couponCode = couponInput.value.trim().toUpperCase();
     
     // Kontrola, zda již nebyl použit tento kupón
-    if (appliedCoupon && appliedCoupon.code === couponCode) {
+    if (window.appliedCoupon && window.appliedCoupon.code === couponCode) {
         showNotification('Tento kupón již byl použit', 'warning');
         return;
     }
@@ -3270,74 +3401,89 @@ function applyCouponWithApi() {
     // Zobrazení loaderu
     showLoader();
     
-    // Zkusíme nejprve použít API
-    try {
-        fetch(API.baseUrl + '/verify-coupon', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                code: couponCode,
-                subtotal: subtotal,
-                customer_email: customerEmail
-            })
+    // Volání API pro ověření kupónu
+    fetch('http://127.0.0.1:5000/api/shop/verify-coupon', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            code: couponCode,
+            subtotal: subtotal,
+            customer_email: customerEmail
         })
-        .then(response => {
-            if (!response.ok) {
-                // Pokud API nefunguje, fallback na lokální ověření
-                console.warn('API pro ověření kupónu nefunguje, používám lokální ověření');
-                hideLoader();
-                applyCoupon();
-                return null;
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!data) return; // Již jsme přepnuli na lokální ověření
-            
-            hideLoader();
-            
-            if (data.status === 'success') {
-                // Nastavení globální proměnné s informacemi o kupónu
-                appliedCoupon = data.coupon;
-                
-                // Nastavení slevy
-                discountAmount = data.coupon.discount;
-                
-                // Vymazání vstupního pole
-                couponInput.value = '';
-                couponInput.placeholder = `Kupón ${data.coupon.code} aplikován (${data.coupon.description})`;
-                couponInput.classList.add('success');
-                setTimeout(() => {
-                    couponInput.classList.remove('success');
-                }, 1500);
-                
-                // Aktualizace cen
-                updateAllOrderSummaries();
-                
-                // Zobrazení notifikace
-                showNotification(data.message, 'success');
-            } else {
-                couponInput.classList.add('error');
-                setTimeout(() => {
-                    couponInput.classList.remove('error');
-                }, 500);
-                showNotification(data.message || 'Neplatný slevový kód', 'error');
-            }
-        })
-        .catch(error => {
-            hideLoader();
-            console.error('Chyba při ověřování kupónu:', error);
-            // Fallback na lokální ověření
-            applyCoupon();
-        });
-    } catch (error) {
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Neplatný slevový kód');
+        }
+        return response.json();
+    })
+    .then(data => {
         hideLoader();
-        console.error('Neočekávaná chyba při ověřování kupónu:', error);
-        // Fallback na lokální ověření
-        applyCoupon();
+        
+        if (data.status === 'success') {
+            // Nastavení globální proměnné s informacemi o kupónu
+            window.appliedCoupon = data.coupon;
+            
+            // Nastavení slevy jako globální proměnné
+            window.discountAmount = data.coupon.discount;
+            
+            // Vymazání vstupního pole
+            couponInput.value = '';
+            couponInput.placeholder = `Kupón ${data.coupon.code} aplikován (${data.coupon.description})`;
+            couponInput.classList.add('success');
+            setTimeout(() => {
+                couponInput.classList.remove('success');
+            }, 1500);
+            
+            // Aktualizace cen
+            updateAllOrderSummaries();
+            
+            // Zobrazení aplikovaného kupónu
+            displayAppliedCoupon(data.coupon);
+            
+            // Zobrazení notifikace
+            showNotification(data.message || 'Sleva byla úspěšně aplikována', 'success');
+            
+            // Pro jistotu zalogujeme nastavené hodnoty
+            console.log("Sleva byla nastavena:", {
+                appliedCoupon: window.appliedCoupon,
+                discountAmount: window.discountAmount
+            });
+        } else {
+            couponInput.classList.add('error');
+            setTimeout(() => {
+                couponInput.classList.remove('error');
+            }, 500);
+            showNotification(data.message || 'Neplatný slevový kód', 'error');
+        }
+    })
+    .catch(error => {
+        hideLoader();
+        console.error('Chyba při ověřování kupónu:', error);
+        
+        couponInput.classList.add('error');
+        setTimeout(() => {
+            couponInput.classList.remove('error');
+        }, 500);
+        
+        showNotification('Tento slevový kód neexistuje.', 'error');
+    });
+}
+
+// Přidej tuto funkci pro inicializaci kupónů při načtení stránky
+function initCoupons() {
+    // Přidání obsluhy klávesy Enter v poli pro kupón
+    const couponInput = document.getElementById('coupon-code');
+    if (couponInput) {
+        couponInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyCouponWithApi(); // Změna zde
+            }
+        });
     }
 }
 
