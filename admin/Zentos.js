@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const methodMap = {
             'zasilkovna': 'Zásilkovna',
             'ppl': 'PPL',
-            'express': 'Exkluzivní doručení',
+            'express': 'Expresní doručení',
             'personal': 'Osobní odběr'
         };
         
@@ -1351,59 +1351,98 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!order) return;
         
-        // Naplnění modalu daty
-        document.getElementById('detail-order-id').textContent = order.order_number;
-        document.getElementById('detail-created').textContent = formatDate(order.created_at);
-        document.getElementById('detail-status').value = order.status;
-        document.getElementById('detail-payment').textContent = getPaymentMethodText(order.payment_method);
-        document.getElementById('detail-shipping').textContent = getShippingMethodText(order.shipping_method);
+        // Kontrola, zda je modální okno stále otevřené/dostupné
+        const detailModal = document.getElementById('order-detail-modal');
+        if (!detailModal) {
+            console.warn("Modal detailu objednávky není dostupný");
+            return;
+        }
         
-        document.getElementById('detail-customer-name').textContent = order.customer_name;
-        document.getElementById('detail-customer-email').textContent = order.customer_email;
-        document.getElementById('detail-customer-phone').textContent = order.customer_phone || '-';
-        document.getElementById('detail-customer-address').textContent = `${order.customer_address || ''}, ${order.customer_city || ''}, ${order.customer_zip || ''}`;
-        if (order.shipping_method === 'zasilkovna') {
-            loadZasilkovnaBranchInfo(order.order_number, document.getElementById('detail-shipping'));
+        // Naplnění modalu daty
+        const detailOrderId = document.getElementById('detail-order-id');
+        if (detailOrderId) detailOrderId.textContent = order.order_number;
+        
+        const detailCreated = document.getElementById('detail-created');
+        if (detailCreated) detailCreated.textContent = formatDate(order.created_at);
+        
+        const detailStatus = document.getElementById('detail-status');
+        if (detailStatus) detailStatus.value = order.status;
+        
+        const detailPayment = document.getElementById('detail-payment');
+        if (detailPayment) detailPayment.textContent = getPaymentMethodText(order.payment_method);
+        
+        const detailShipping = document.getElementById('detail-shipping');
+        if (detailShipping) detailShipping.textContent = getShippingMethodText(order.shipping_method);
+        
+        const detailCustomerName = document.getElementById('detail-customer-name');
+        if (detailCustomerName) detailCustomerName.textContent = order.customer_name;
+        
+        const detailCustomerEmail = document.getElementById('detail-customer-email');
+        if (detailCustomerEmail) detailCustomerEmail.textContent = order.customer_email;
+        
+        const detailCustomerPhone = document.getElementById('detail-customer-phone');
+        if (detailCustomerPhone) detailCustomerPhone.textContent = order.customer_phone || '-';
+        
+        const detailCustomerAddress = document.getElementById('detail-customer-address');
+        if (detailCustomerAddress) {
+            detailCustomerAddress.textContent = `${order.customer_address || ''}, ${order.customer_city || ''}, ${order.customer_zip || ''}`;
+        }
+        
+        if (order.shipping_method === 'zasilkovna' && detailShipping) {
+            loadZasilkovnaBranchInfo(order.order_number, detailShipping);
         }
         
         // Naplnění položek objednávky
         const productsList = document.getElementById('detail-products-list');
-        productsList.innerHTML = '';
-        
-        order.items.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.variant}</td>
-                <td>${formatPrice(item.price)}</td>
-                <td>${item.quantity}</td>
-                <td>${formatPrice(item.total)}</td>
-            `;
-            productsList.appendChild(row);
-        });
+        if (productsList) {
+            productsList.innerHTML = '';
+            
+            order.items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.variant}</td>
+                    <td>${formatPrice(item.price)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatPrice(item.total)}</td>
+                `;
+                productsList.appendChild(row);
+            });
+        }
         
         // Naplnění souhrnných informací
-        document.getElementById('detail-subtotal').textContent = formatPrice(order.subtotal);
-        document.getElementById('detail-shipping-cost').textContent = formatPrice(order.shipping_price);
-        document.getElementById('detail-payment-cost').textContent = formatPrice(order.payment_price);
-        document.getElementById('detail-total').textContent = formatPrice(order.total);
+        const detailSubtotal = document.getElementById('detail-subtotal');
+        if (detailSubtotal) detailSubtotal.textContent = formatPrice(order.subtotal);
         
-        // Naplnění poznámek
-        setupOrderDetailNotes(order);
+        const detailShippingCost = document.getElementById('detail-shipping-cost');
+        if (detailShippingCost) detailShippingCost.textContent = formatPrice(order.shipping_price);
+        
+        const detailPaymentCost = document.getElementById('detail-payment-cost');
+        if (detailPaymentCost) detailPaymentCost.textContent = formatPrice(order.payment_price);
+        
+        const detailTotal = document.getElementById('detail-total');
+        if (detailTotal) detailTotal.textContent = formatPrice(order.total);
+        
+        // Naplnění poznámek - pouze pokud existují elementy
+        if (document.getElementById('detail-customer-note')) {
+            setupOrderDetailNotes(order);
+        }
         
         // Ošetření zobrazení tlačítka pro fakturu
         const generateInvoiceBtn = document.getElementById('generate-invoice');
         const viewInvoiceBtn = document.getElementById('view-invoice');
         
-        if (order.invoice) {
-            // Pokud objednávka už má fakturu, skryjeme tlačítko "Vytvořit fakturu" a zobrazíme "Zobrazit fakturu"
-            generateInvoiceBtn.style.display = 'none';
-            viewInvoiceBtn.style.display = 'inline-flex';
-            viewInvoiceBtn.setAttribute('data-invoice', order.invoice.invoice_number);
-        } else {
-            // Pokud objednávka nemá fakturu, zobrazíme tlačítko "Vytvořit fakturu" a skryjeme "Zobrazit fakturu"
-            generateInvoiceBtn.style.display = 'inline-flex';
-            viewInvoiceBtn.style.display = 'none';
+        if (generateInvoiceBtn && viewInvoiceBtn) {
+            if (order.invoice) {
+                // Pokud objednávka už má fakturu, skryjeme tlačítko "Vytvořit fakturu" a zobrazíme "Zobrazit fakturu"
+                generateInvoiceBtn.style.display = 'none';
+                viewInvoiceBtn.style.display = 'inline-flex';
+                viewInvoiceBtn.setAttribute('data-invoice', order.invoice.invoice_number);
+            } else {
+                // Pokud objednávka nemá fakturu, zobrazíme tlačítko "Vytvořit fakturu" a skryjeme "Zobrazit fakturu"
+                generateInvoiceBtn.style.display = 'inline-flex';
+                viewInvoiceBtn.style.display = 'none';
+            }
         }
         
         // Otevření modalu
@@ -1413,7 +1452,19 @@ document.addEventListener('DOMContentLoaded', function() {
         setupOrderDetailButtons(order);
         
         // Inicializace záložek poznámek
-        setupNoteTabs();
+        if (document.querySelector('.notes-tab')) {
+            setupNoteTabs();
+        }
+    
+        try {
+            if (typeof enhanceOrderDetail === 'function') {
+                enhanceOrderDetail(order);
+            } else {
+                console.warn("Funkce enhanceOrderDetail není k dispozici v showOrderDetail");
+            }
+        } catch (error) {
+            console.error("Chyba při volání enhanceOrderDetail:", error);
+        }
     }
 
     // Funkce pro načtení informací o pobočce Zásilkovny
@@ -1494,61 +1545,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-    }
-
-    /**
-    * Inicializace funkcionality importu objednávek
-    */
-    function initOrdersImport() {
-        console.log('Inicializuji import objednávek...');
-        
-        // Přidání event listeneru pro otevření modálního okna importu
-        const importButton = document.getElementById('import-orders-btn');
-        if (importButton) {
-            console.log('Import tlačítko nalezeno');
-            
-            // Odstranění všech stávajících listenerů (velmi důležité!)
-            importButton.onclick = null;
-            const newImportButton = importButton.cloneNode(true);
-            importButton.parentNode.replaceChild(newImportButton, importButton);
-            
-            // Přidání nového listeneru
-            newImportButton.onclick = function(e) {
-                e.preventDefault();
-                console.log('Kliknuto na import tlačítko');
-                const modal = document.getElementById('import-modal');
-                if (modal) {
-                    modal.classList.add('active');
-                    // Nastavit modal až když je otevřený
-                    setTimeout(setupImportModal, 100);
-                } else {
-                    console.error('Import modal nenalezen!');
-                }
-            };
-        } else {
-            console.error('Import tlačítko nenalezeno!');
-        }
-        
-        // Zavření modálu
-        const closeButtons = document.querySelectorAll('#import-modal .modal-close, #import-modal .modal-cancel');
-        closeButtons.forEach(btn => {
-            btn.onclick = function() {
-                const modal = document.getElementById('import-modal');
-                if (modal) modal.classList.remove('active');
-            };
-        });
-        
-        // Kliknutí mimo modální okno ho zavře
-        const modal = document.getElementById('import-modal');
-        if (modal) {
-            modal.onclick = function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            };
-        }
-        
-        console.log('Inicializace importu objednávek dokončena');
     }
 
     /**
@@ -2298,17 +2294,22 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {Object} order - Objekt objednávky
      */
     function setupOrderDetailNotes(order) {
-        // Nastavení poznámky zákazníka
-        document.getElementById('detail-customer-note').textContent = order.note || 'Žádná poznámka';
+        // Nastavení poznámky zákazníka - přidání kontroly existence elementu
+        const customerNoteElement = document.getElementById('detail-customer-note');
+        if (customerNoteElement) {
+            customerNoteElement.textContent = order.note || 'Žádná poznámka';
+        }
         
-        // Vyčištění kontejneru interních poznámek
+        // Vyčištění kontejneru interních poznámek - přidání kontroly existence elementu
         const notesContainer = document.getElementById('admin-notes-list');
         if (notesContainer) {
             notesContainer.innerHTML = '<div class="loading-notes">Načítání poznámek...</div>';
         }
         
-        // Aktualizace vizuálního stavu záložek
-        updateNoteTabsStatus();
+        // Aktualizace vizuálního stavu záložek - pouze pokud existují
+        if (document.querySelector('.notes-tab')) {
+            updateNoteTabsStatus();
+        }
     }
     
     
@@ -3757,4 +3758,253 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Spuštění inicializace
     initApp();
+});
+document.addEventListener('DOMContentLoaded', function() {
+    // Funkce pro překlad platebních metod
+    function formatPaymentMethod(methodCode) {
+        const methodMap = {
+            'card': 'Online platba kartou',
+            'bank': 'Bankovní převod',
+            'cod': 'Dobírka',
+            'personal-express': 'Na místě'  // Změna z "personal-express" na "Na místě"
+        };
+        
+        return methodMap[methodCode] || methodCode;
+    }
+    
+    // Funkce pro překlad dopravních metod
+    function formatShippingMethod(methodCode) {
+        const methodMap = {
+            'zasilkovna': 'Zásilkovna',
+            'ppl': 'PPL',
+            'express': 'Expresní doručení',
+            'pickup': 'Osobní odběr'
+        };
+        
+        return methodMap[methodCode] || methodCode;
+    }
+    
+    // Funkce pro kontrolu a formátování prvků v detailu objednávky
+    function enhanceOrderDetail(order) {
+        console.log("enhanceOrderDetail volána", order ? "s parametrem order" : "bez parametru order");
+        
+        // Pokud máme order jako parametr, zpracujeme jeho metadata a odměny přímo
+        if (order) {
+            processMetadataAndRewards(order);
+            return;
+        }
+        
+        // Pokud nemáme order, najdeme data v DOM nebo použijeme existující metodu pro získání detailu
+        const orderNumberElement = document.getElementById('detail-order-id');
+        if (orderNumberElement && orderNumberElement.textContent) {
+            const orderNumber = orderNumberElement.textContent;
+            console.log("Nalezeno číslo objednávky v DOM:", orderNumber);
+            
+            // Nekomplikujeme to voláním API, prostě použijeme data, která už máme
+            // Zkusíme najít v DOM aspoň základní údaje
+            const metadata = {
+                free_shipping: document.getElementById('detail-shipping-cost')?.textContent.includes('0 Kč')
+            };
+            
+            processMetadataAndRewards({
+                order_number: orderNumber,
+                metadata: metadata
+            });
+        }
+    }
+
+    function processMetadataAndRewards(order) {
+        console.log("Zpracování metadat a odměn pro objednávku:", order.order_number);
+        
+        // 1. Zpracování dopravy zdarma
+        try {
+            const hasFreeShipping = (order.metadata && order.metadata.free_shipping === true) || 
+                                  document.getElementById('detail-shipping-cost')?.textContent.includes('0 Kč');
+            
+            if (hasFreeShipping) {
+                const summaryRows = document.querySelectorAll('.summary-row');
+                summaryRows.forEach(row => {
+                    const rowText = row.querySelector('span:first-child');
+                    if (rowText?.textContent.includes('Doprava')) {
+                        const priceElement = row.querySelector('span:last-child');
+                        if (priceElement?.textContent.includes('0 Kč') && !priceElement.querySelector('.free-shipping-badge')) {
+                            const freeShippingBadge = document.createElement('span');
+                            freeShippingBadge.className = 'free-shipping-badge';
+                            freeShippingBadge.innerHTML = `
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="margin-right:6px">
+                                    <path d="M5 13L9 17L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Doprava zdarma
+                            `;
+                            Object.assign(freeShippingBadge.style, {
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                color: '#10b981',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                fontWeight: '500',
+                            });
+                            priceElement.innerHTML = '';
+                            priceElement.appendChild(freeShippingBadge);
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("Chyba při zpracování dopravy zdarma:", error);
+        }
+    
+        // 2. Oprava platby
+        try {
+            const paymentElement = document.getElementById('detail-payment');
+            if (paymentElement?.textContent.trim() === 'personal-express') {
+                paymentElement.textContent = 'Na Místě';
+                paymentElement.style.fontWeight = '500';
+            }
+        } catch (error) {
+            console.error("Chyba při úpravě textu platby:", error);
+        }
+    
+        // 3. Zpracování odměny - Moderní efektní design
+        try {
+            const customerNote = document.getElementById('detail-customer-note');
+            if (!customerNote || customerNote.querySelector('.effect-note')) return;
+    
+            const originalText = customerNote.textContent.trim();
+            if (!originalText.includes('Odměna: Level')) return;
+    
+            const lines = originalText.split('\n').map(line => line.trim()).filter(line => line);
+            const rewardLineIndex = lines.findIndex(line => line.includes('Odměna: Level'));
+            if (rewardLineIndex === -1) return;
+    
+            // Získání levelu a nastavení barev
+            const levelMatch = lines[rewardLineIndex].match(/Level (\d+)/);
+            const level = levelMatch ? parseInt(levelMatch[1]) : 1;
+            
+            const rewardStyles = {
+                1: { bg: 'rgba(0, 190, 10, 0.1)', border: '#2e7d32', icon: '#2e7d32' },
+                2: { bg: 'rgba(0, 145, 234, 0.1)', border: '#0091ea', icon: '#0091ea' },
+                3: { bg: 'rgba(255, 171, 0, 0.1)', border: '#ffab00', icon: '#ffab00' },
+                4: { bg: 'rgba(142, 36, 170, 0.1)', border: '#8e24aa', icon: '#8e24aa' },
+                5: { bg: 'rgba(233, 30, 99, 0.1)', border: '#e91e63', icon: '#e91e63' }
+            };
+            const style = rewardStyles[level] || rewardStyles[1];
+    
+            // Vytvoření efektního boxu
+            const effectNote = document.createElement('div');
+            effectNote.className = 'effect-note';
+            effectNote.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                <div style="
+                    width:24px; height:24px; 
+                    color:${style.icon};
+                    display:flex; 
+                    align-items:center; 
+                    justify-content:center;
+                    flex-shrink:0;
+                ">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 12V22H4V12M22 7H2V12H22V7Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M12 7H7.5C6.83696 7 6.20107 6.73661 5.73223 6.26777C5.26339 5.79893 5 5.16304 5 4.5C5 3.83696 5.26339 3.20107 5.73223 2.73223C6.20107 2.26339 6.83696 2 7.5 2C11 2 12 7 12 7Z" 
+                              stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M12 7H16.5C17.163 7 17.7989 6.73661 18.2678 6.26777C18.7366 5.79893 19 5.16304 19 4.5C19 3.83696 18.7366 3.20107 18.2678 2.73223C17.7989 2.26339 17.163 2 16.5 2C13 2 12 7 12 7Z" 
+                              stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <div style="font-weight:600; color:${style.border}">
+                    ${lines[rewardLineIndex]}
+                </div>
+            </div>
+            `;
+            
+            Object.assign(effectNote.style, {
+                position: 'relative',
+                background: style.bg,
+                borderLeft: `3px solid ${style.border}`,
+                borderRadius: '8px',
+                padding: '12px 16px',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px'
+            });
+    
+            // Zbytek poznámky
+            const otherLines = lines.filter((_, index) => index !== rewardLineIndex);
+            const noteContent = document.createElement('div');
+            noteContent.className = 'customer-note-content';
+            noteContent.textContent = otherLines.join('\n');
+            Object.assign(noteContent.style, {
+                color: '#fff',
+                fontSize: '14px',
+                lineHeight: '1.5',
+                paddingTop: '5px',
+            });
+    
+            // Sestavení obsahu
+            customerNote.innerHTML = '';
+            customerNote.appendChild(effectNote);
+            if (otherLines.length > 0) {
+                customerNote.appendChild(noteContent);
+            }
+    
+        } catch (error) {
+            console.error("Chyba při zpracování odměny:", error);
+        }
+    }
+    
+    // Rozšíření funkce getPaymentMethodText (pokud existuje)
+    if (typeof window.getPaymentMethodText === 'function') {
+        const originalGetPaymentMethodText = window.getPaymentMethodText;
+        window.getPaymentMethodText = function(method) {
+            if (method === 'personal-express') {
+                return 'Na místě';
+            }
+            return originalGetPaymentMethodText(method);
+        };
+        console.log('Funkce getPaymentMethodText byla rozšířena');
+    }
+    
+    // Přidání pozorování změn v DOM, abychom mohli reagovat na asynchronní změny
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                // Kontrolujeme, zda se přidal detail objednávky nebo změnil DOM
+                if (document.querySelector('#order-detail-modal.active, .order-detail.active')) {
+                    enhanceOrderDetail();
+                }
+            }
+        });
+    });
+    
+    // Spustíme observer pro sledování změn v celém dokumentu
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Kontrola při načtení stránky
+    enhanceOrderDetail();
+    
+    // Přidání posluchače událostí pro otevření modálního okna
+    document.addEventListener('click', function(e) {
+        // Pokud bylo kliknuto na tlačítko pro zobrazení detailu objednávky
+        if (e.target.closest('.table-action-btn.view, .order-view-btn')) {
+            // Počkáme, než se modální okno otevře
+            setTimeout(enhanceOrderDetail, 300);
+        }
+    });
+    
+    // Kontrolujeme každých 500ms, jestli se neotevřelo modální okno s detailem objednávky
+    const intervalId = setInterval(function() {
+        if (document.querySelector('#order-detail-modal.active, .order-detail.active')) {
+            enhanceOrderDetail();
+        }
+    }, 500);
+    
+    // Zrušíme interval po 10 sekundách
+    setTimeout(function() {
+        clearInterval(intervalId);
+    }, 10000);
+    
+    console.log('Vylepšení zobrazení platebních metod v Zentosu bylo inicializováno');
 });

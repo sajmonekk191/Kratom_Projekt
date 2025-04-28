@@ -3059,3 +3059,1369 @@ h3.qr-code-title {
         margin-bottom: 8px;
     }
 }
+
+/* === BANNER DOPRAVY ZDARMA === */
+.free-shipping-banner {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-md);
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.free-shipping-banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.free-shipping-banner.free-shipping-active {
+    background: rgba(0, 230, 118, 0.1);
+    border-color: rgba(0, 230, 118, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.free-shipping-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 230, 118, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.free-shipping-icon i {
+    color: var(--primary);
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.free-shipping-banner.free-shipping-active .free-shipping-icon {
+    background: var(--primary);
+}
+
+.free-shipping-banner.free-shipping-active .free-shipping-icon i {
+    color: var(--dark);
+}
+
+.free-shipping-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+.free-shipping-text {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px; /* Zvětšený rozestup */
+}
+
+.free-shipping-title {
+    color: var(--light);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 3px; /* Přidaný rozestup mezi texty */
+}
+
+.free-shipping-banner.free-shipping-active .free-shipping-title {
+    color: var(--primary);
+}
+
+/* Změněné třídy pro řešení konfliktu s jiným progress barem */
+.shipping-progress-wrapper {
+    position: relative;
+    margin-top: 18px; /* Zvětšený rozestup před progress barem */
+    width: 100%;
+    height: 30px; /* Zvětšená výška pro text nad progress barem */
+}
+
+.shipping-progress-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-pill);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 3px; /* Přidaný rozestup po progress baru */
+}
+
+.shipping-progress-bar {
+    height: 100%;
+    width: 0; /* Výchozí šířka */
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    border-radius: var(--border-radius-pill);
+    transition: width 0.5s ease; /* Plynulá animace při změně šířky */
+}
+
+.free-shipping-progress {
+    display: block;
+    position: absolute;
+    top: -20px; /* Posunutí textu nad progress bar */
+    right: 0;
+    font-size: 0.85rem;
+    color: var(--gray);
+    transition: all 0.3s ease;
+}
+
+.free-shipping-banner.free-shipping-active .free-shipping-progress {
+    color: var(--primary-light);
+    font-weight: 600;
+}
+
+/* 
+ * Kompletní CSS pro animaci odměn
+ * Vložte tento kód do vašeho CSS souboru
+ */
+
+/* === SEKCE ODMĚN === */
+.reward-section {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-md);
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.reward-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.reward-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    color: var(--light);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.reward-header i {
+    margin-right: 10px;
+    color: var(--primary);
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-md);
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.reward-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.reward-item:hover::before {
+    opacity: 1;
+}
+
+.reward-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.reward-icon i {
+    color: var(--gray);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.reward-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.reward-title {
+    color: var(--light-dark);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.reward-threshold {
+    color: var(--gray);
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.next-reward {
+    font-size: 0.8rem;
+    color: var(--gray-light);
+    margin-top: 4px;
+}
+
+.reward-status {
+    margin-left: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.reward-status i {
+    color: var(--gray);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+/* Odemknuté odměny */
+.reward-item.reward-unlocked {
+    background: rgba(0, 230, 118, 0.08);
+    border-color: rgba(0, 230, 118, 0.2);
+}
+
+.reward-item.reward-unlocked .reward-icon {
+    background: rgba(0, 230, 118, 0.15);
+}
+
+.reward-item.reward-unlocked .reward-icon i {
+    color: var(--primary);
+}
+
+.reward-item.reward-unlocked .reward-title {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.reward-item.reward-unlocked .reward-threshold {
+    color: var(--primary-light);
+}
+
+.reward-item.reward-unlocked .reward-status i {
+    color: var(--primary);
+}
+
+/* Level 3 Dárek - modrý styl */
+.reward-item.reward-level-3 {
+    background: linear-gradient(to right, rgba(3, 169, 244, 0.05), rgba(0, 230, 118, 0.05));
+    border-color: rgba(3, 169, 244, 0.3);
+}
+
+.reward-item.reward-level-3 .reward-icon {
+    background: linear-gradient(135deg, rgba(3, 169, 244, 0.6), rgba(0, 230, 118, 0.4));
+}
+
+.reward-item.reward-level-3 .reward-title {
+    color: #29B6F6;
+}
+
+.reward-item.reward-level-3 .reward-status i {
+    color: #03A9F4;
+}
+
+/* Level 4 Dárek - fialový styl */
+.reward-item.reward-level-4 {
+    background: linear-gradient(to right, rgba(156, 39, 176, 0.05), rgba(103, 58, 183, 0.05));
+    border-color: rgba(156, 39, 176, 0.3);
+}
+
+.reward-item.reward-level-4 .reward-icon {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.6), rgba(103, 58, 183, 0.4));
+}
+
+.reward-item.reward-level-4 .reward-title {
+    color: #BA68C8;
+}
+
+.reward-item.reward-level-4 .reward-status i {
+    color: #9C27B0;
+}
+
+/* Level 5 Dárek - zlatý styl */
+.reward-item.reward-max-level {
+    background: linear-gradient(to right, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1));
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.reward-item.reward-max-level .reward-icon {
+    background: linear-gradient(135deg, #FFC107, #FF9800);
+}
+
+.reward-item.reward-max-level .reward-icon i {
+    color: #212121;
+}
+
+.reward-item.reward-max-level .reward-title {
+    color: #FFC107;
+    font-weight: 700;
+}
+
+.reward-item.reward-max-level .reward-threshold {
+    color: #FFD54F;
+}
+
+.reward-item.reward-max-level .reward-status i {
+    color: #FFC107;
+}
+
+/* Pomalá animace pro level up - postupné zvětšení a následné zmenšení */
+@keyframes levelUpAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+/* Důležité! Animaci definujeme samostatně, aby se nepřepisovala */
+.reward-level-up {
+    animation-name: levelUpAnimation;
+    animation-duration: 0.9s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards; 
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+}
+
+/* Tyto definice zajistí, že animace nebude ovlivněna žádnými dalšími transform vlastnostmi */
+.reward-item {
+    transform: scale(1);
+    transform-origin: center;
+    will-change: transform;
+}
+
+/* Podpora pro mobilní zařízení */
+@media (max-width: 768px) {
+    .reward-item {
+        flex-wrap: wrap;
+    }
+    
+    .reward-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+}
+/* ===== KOMPLEXNÍ RESPONZIVNÍ DESIGN ===== */
+
+/* Extra velké obrazovky (větší než 1400px) */
+@media (min-width: 1401px) {
+    .container {
+        max-width: 1340px;
+    }
+    
+    .cart-content, 
+    .delivery-content,
+    .contact-content {
+        gap: 40px;
+    }
+    
+    .options-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .progress-steps {
+        padding: 20px 10px;
+    }
+}
+
+/* Velké obrazovky (mezi 1200px a 1400px) */
+@media (min-width: 1200px) and (max-width: 1400px) {
+    .container {
+        max-width: 1140px;
+    }
+    
+    .progress-steps {
+        max-width: 900px;
+        padding: 20px 10px;
+    }
+}
+
+/* Střední obrazovky (mezi 992px a 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .container {
+        max-width: 960px;
+        padding: 0 15px;
+    }
+    
+    .progress-steps {
+        max-width: 840px;
+        padding: 20px 10px;
+    }
+    
+    .cart-content, 
+    .delivery-content,
+    .contact-content {
+        gap: 25px;
+    }
+    
+    .cart-item {
+        padding: 15px;
+    }
+    
+    .item-image {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .options-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+/* Tablety (mezi 768px a 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .container {
+        max-width: 720px;
+        padding: 0 15px;
+    }
+    
+    .progress-steps {
+        padding: 15px 10px;
+        margin-top: 25px;
+    }
+    
+    .step-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .section-header h1 {
+        font-size: 2rem;
+    }
+    
+    .cart-content, 
+    .delivery-content,
+    .contact-content {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .order-summary,
+    .order-summary-mini {
+        position: static;
+        margin-top: 30px;
+    }
+    
+    .cart-items, 
+    .delivery-options-container, 
+    .contact-form {
+        padding: 20px;
+    }
+    
+    .options-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-group {
+        width: 100%;
+    }
+    
+    .primary-btn, 
+    .back-to-shop-btn {
+        padding: 12px;
+    }
+    
+    .step-text {
+        font-size: 0.75rem;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' */
+    .back-button span {
+        display: inline-block;
+    }
+    
+    /* Centrování textu v tlačítku 'Použít' */
+    .apply-btn {
+        justify-content: center;
+    }
+}
+
+/* Malé tablety a velké mobilní telefony (mezi 576px a 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    .container {
+        max-width: 540px;
+        padding: 0 10px;
+    }
+    
+    .progress-steps {
+        padding: 12px 10px;
+        margin: 20px 0;
+    }
+    
+    .step-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 5px;
+    }
+    
+    .step-icon i {
+        font-size: 1rem;
+    }
+    
+    .step-text {
+        font-size: 0.7rem;
+        display: none;
+    }
+    
+    .step-connector {
+        margin: 0 3px;
+    }
+    
+    .section-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .cart-item {
+        padding: 15px;
+        flex-direction: column;
+    }
+    
+    .item-image {
+        width: 100%;
+        height: 160px;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .item-header {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    
+    .item-bottom {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .option-card {
+        margin-bottom: 10px;
+    }
+    
+    .order-summary-mini h2 {
+        font-size: 1.3rem;
+    }
+    
+    .summary-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+    
+    .toast-notification {
+        width: 90%;
+    }
+    
+    /* Paketa widget responsivita */
+    .packeta-widget-ui {
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    
+    .packeta-branch-btn {
+        padding: 8px 10px;
+    }
+    
+    /* Platba převodem responsivita */
+    .bank-transfer-details {
+        padding: 15px;
+    }
+    
+    .payment-info-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .qr-code-container img {
+        width: 160px;
+        height: 160px;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' */
+    .back-button span {
+        display: inline-block;
+    }
+    
+    /* Centrování textu v tlačítku 'Použít' */
+    .apply-btn {
+        justify-content: center;
+    }
+}
+
+/* Mobilní telefony (menší než 576px) */
+@media (max-width: 575px) {
+    .container {
+        padding: 0 8px;
+    }
+    
+    .main-nav {
+        padding: 0 10px;
+    }
+    
+    .back-button {
+        padding: 10px 15px;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' na všech rozlišeních */
+    .back-button span {
+        display: inline-block;
+    }
+    
+    .progress-steps {
+        padding: 10px;
+        margin: 15px 0;
+        border-radius: var(--border-radius-md);
+    }
+    
+    .step-icon {
+        width: 35px;
+        height: 35px;
+        margin-bottom: 4px;
+    }
+    
+    .step-icon i {
+        font-size: 0.9rem;
+    }
+    
+    .step-text {
+        display: none;
+    }
+    
+    .step-connector {
+        margin: 0 2px;
+        max-width: 40px;
+    }
+    
+    .section-header {
+        margin-bottom: 25px;
+    }
+    
+    .section-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .section-header h1::after {
+        width: 70px;
+        bottom: -8px;
+    }
+    
+    .cart-items, 
+    .order-summary, 
+    .delivery-options-container, 
+    .contact-form,
+    .order-summary-mini {
+        padding: 15px;
+        border-radius: var(--border-radius-md);
+    }
+    
+    .cart-item {
+        padding: 12px;
+        margin-bottom: 15px;
+        flex-direction: column;
+    }
+    
+    .item-image {
+        width: 100%;
+        height: 140px;
+        margin-right: 0;
+        margin-bottom: 12px;
+    }
+    
+    .item-header {
+        flex-direction: row;
+        margin-bottom: 8px;
+    }
+    
+    .item-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .item-bottom {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .item-price {
+        font-size: 1.1rem;
+    }
+    
+    .coupon-input-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    /* Centrování textu v tlačítku 'Použít' */
+    .apply-btn {
+        width: 100%;
+        padding: 12px;
+        justify-content: center;
+    }
+    
+    .summary-total {
+        font-size: 1.1rem;
+    }
+    
+    .primary-btn, 
+    .back-to-shop-btn {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+    
+    .subsection-title {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    .options-grid {
+        gap: 10px;
+    }
+    
+    .option-content {
+        padding: 15px;
+    }
+    
+    .option-header {
+        flex-wrap: wrap;
+    }
+    
+    .option-price {
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    .shipping-switch {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .confirmation-content {
+        width: 100%;
+        padding: 20px 15px;
+    }
+    
+    .confirmation-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    .confirmation-info {
+        font-size: 1rem;
+    }
+    
+    .confirmation-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    /* Modální okno responsivita */
+    .modal-content {
+        width: 95%;
+        max-height: 80vh;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-header h2 {
+        font-size: 16px;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 12px 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .secondary-btn, 
+    #confirmOrderBtn {
+        width: 100%;
+        margin-right: 0;
+    }
+    
+    .secondary-btn {
+        order: 2;
+    }
+    
+    #confirmOrderBtn {
+        order: 1;
+        margin-bottom: 5px;
+    }
+    
+    /* Platba převodem responsivita */
+    .bank-transfer-details {
+        padding: 15px;
+        margin: 20px 0;
+    }
+    
+    .bank-transfer-details h3 {
+        font-size: 16px;
+    }
+    
+    .payment-info-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .payment-info-item {
+        padding: 12px;
+    }
+    
+    .qr-code-container {
+        padding: 8px;
+    }
+    
+    .qr-code-container img {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .payment-notice {
+        padding: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    /* Pickup locations responsivita */
+    .pickup-locations {
+        flex-direction: column;
+    }
+    
+    .pickup-location {
+        padding: 8px;
+    }
+    
+    /* Odstranění zbytečných prvků na malých obrazovkách */
+    .secure-checkout-description,
+    .delivery-time {
+        display: none;
+    }
+}
+
+/* Extra malé mobilní telefony (menší než 400px) */
+@media (max-width: 399px) {
+    .back-button {
+        padding: 8px 12px;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' i na velmi malých zařízeních */
+    .back-button span {
+        display: inline-block;
+        font-size: 0.85rem;
+    }
+    
+    .step-icon {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .step-icon i {
+        font-size: 0.8rem;
+    }
+    
+    .step-connector {
+        max-width: 30px;
+    }
+    
+    .section-header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .item-header h3 {
+        font-size: 1rem;
+    }
+    
+    .cart-items, 
+    .order-summary, 
+    .delivery-options-container, 
+    .contact-form,
+    .order-summary-mini {
+        padding: 12px;
+    }
+    
+    .cart-item {
+        padding: 10px;
+    }
+    
+    .item-image {
+        height: 120px;
+    }
+    
+    .option-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .option-title {
+        font-size: 0.9rem;
+    }
+    
+    .confirmation-content h1 {
+        font-size: 1.3rem;
+    }
+    
+    .checkmark-circle {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .payment-methods-enhanced i {
+        font-size: 1.8rem;
+    }
+    
+    /* Lepší zobrazení dopravy a platby */
+    .option-content {
+        padding: 12px;
+    }
+    
+    .option-body {
+        font-size: 0.8rem;
+    }
+    
+    .recommended-badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+    
+    /* Centrování textu v tlačítku 'Použít' */
+    .apply-btn {
+        justify-content: center;
+    }
+}
+
+/* Vylepšení vertikálního zobrazení v košíku pro mobilní zařízení */
+@media (max-width: 767px) {
+    /* Vylepšení košíku pro mobilní zařízení */
+    .cart-item {
+        flex-direction: column;
+    }
+    
+    .item-image {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .item-bottom {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 15px;
+    }
+    
+    /* Formulář doručovací adresy */
+    .shipping-address {
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+    
+    /* Souhrn objednávky */
+    .order-summary, 
+    .order-summary-mini {
+        position: static;
+    }
+    
+    /* Vylepšení responsivity tlačítek */
+    .primary-btn, 
+    .back-to-shop-btn {
+        padding: 12px 15px;
+    }
+    
+    /* Vylepšení viditelnosti výběru pobočky Zásilkovny */
+    .packeta-branch-btn {
+        font-size: 0.9rem;
+    }
+    
+    /* Responsivní tabulka detailů objednávky */
+    .detail-row {
+        flex-wrap: wrap;
+    }
+    
+    /* Vylepšení sekce dopravy a platby */
+    .options-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Upravení obsahu pro lepší čitelnost */
+    .option-content {
+        padding-top: 20px;
+    }
+    
+    /* Oprava problémů s hromaděním v záhlaví možností */
+    .option-header {
+        flex-wrap: wrap;
+    }
+    
+    .option-details {
+        width: calc(100% - 50px);
+    }
+    
+    .option-price {
+        width: 100%;
+        margin-left: 55px;
+        margin-top: 5px;
+    }
+    
+    /* Vylepšení pro potvrzovací sekci */
+    .confirmation-content {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    #confirmation-section {
+        min-height: auto;
+        display: block;
+        padding: 30px 0;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' */
+    .back-button span {
+        display: inline-block;
+    }
+    
+    /* Centrování textu v tlačítku 'Použít' */
+    .apply-btn {
+        justify-content: center;
+    }
+}
+
+/* Opravy překryvů v menu */
+@media (max-width: 480px) {
+    .progress-steps {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 12px 10px; /* Zajištění paddingu 10px od okrajů */
+    }
+    
+    .progress-steps::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .progress-steps {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    .step {
+        flex-shrink: 0;
+    }
+    
+    .step-connector {
+        min-width: 20px;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' */
+    .back-button span {
+        display: inline-block;
+    }
+}
+
+/* Lepší zobrazení na zařízení s poměrem výšky/šířky větším než 2 (jako iPhone X, 11, 12, 13) */
+@media (max-aspect-ratio: 2/3) {
+    .empty-cart-animation {
+        font-size: 4rem;
+    }
+    
+    .empty-cart-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    /* Lepší zpracování modálů na vysokých telefonech */
+    .order-confirmation-modal .modal-content {
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    
+    /* Vylepšení pro pružnější rozvržení */
+    .cart-content, 
+    .delivery-content,
+    .contact-content {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' */
+    .back-button span {
+        display: inline-block;
+    }
+    
+    /* Centrování textu v tlačítku 'Použít' */
+    .apply-btn {
+        justify-content: center;
+    }
+}
+
+/* Optimalizace pro zařízení s vyšším DPI */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .secure-checkout-enhanced {
+        border-width: 0.5px;
+    }
+    
+    .option-content {
+        border-width: 0.5px;
+    }
+    
+    input, textarea, select, .input-wrapper input {
+        border-width: 0.5px;
+    }
+}
+
+/* Oprava zobrazení pro Safari na iOS */
+@supports (-webkit-touch-callout: none) {
+    .step-icon,
+    .option-icon,
+    .reward-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Oprava problémů s position: fixed na iOS */
+    .order-confirmation-modal,
+    .toast-notification,
+    .loader-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100vh;
+        height: calc(var(--vh, 1vh) * 100);
+        top: 0;
+        left: 0;
+    }
+    
+    /* Specifické úpravy pro iOS */
+    input[type="checkbox"], 
+    input[type="radio"] {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+
+/* Složky nákupního košíku - lepší responzivita */
+@media (max-width: 767px) {
+    /* Vylepšení košíku pro mobilní zařízení */
+    .cart-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .cart-items {
+        order: 1;
+    }
+    
+    .order-summary {
+        order: 2; 
+        margin-top: 20px;
+    }
+    
+    /* Responzivní checkout kroky */
+    .progress-steps {
+        justify-content: center;
+        margin: 20px 15px;
+        padding: 15px 10px; /* Zajištění paddingu 10px od okrajů */
+    }
+    
+    /* Menší odsazení pro lepší využití prostoru */
+    .cart-items, 
+    .order-summary, 
+    .delivery-options-container, 
+    .order-summary-mini,
+    .contact-form {
+        padding: 15px;
+    }
+    
+    /* Modální okno - lepší využití prostoru */
+    .modal-body {
+        padding: 15px;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+}
+
+/* Specifické úpravy pro zařízení s velmi malou výškou (např. telefony v landscape módu) */
+@media (max-height: 500px) and (orientation: landscape) {
+    .progress-steps {
+        padding: 8px 10px; /* Zajištění paddingu 10px od okrajů */
+    }
+    
+    .step-text {
+        display: none;
+    }
+    
+    .step-icon {
+        width: 35px;
+        height: 35px;
+        margin-bottom: 0;
+    }
+    
+    .section-header {
+        margin-bottom: 15px;
+    }
+    
+    /* Modální okna pro landscape mód */
+    .order-confirmation-modal .modal-content {
+        max-height: 90vh;
+        max-width: 90%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    
+    /* Potvrzovací stránka */
+    .confirmation-content {
+        padding: 20px 15px;
+    }
+    
+    .success-animation {
+        margin-bottom: 10px;
+    }
+    
+    .checkmark-circle {
+        width: 70px;
+        height: 70px;
+    }
+    
+    /* Zachování textu v tlačítku 'Zpět do obchodu' */
+    .back-button span {
+        display: inline-block;
+        font-size: 0.85rem;
+    }
+    
+    /* Centrování textu v tlačítku 'Použít' */
+    .apply-btn {
+        justify-content: center;
+    }
+}
+
+/* Specifické úpravy pro tisk */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    header, footer, .progress-steps, 
+    .primary-btn, .back-to-shop-btn,
+    .toast-notification, .loader-overlay,
+    .order-confirmation-modal {
+        display: none !important;
+    }
+    
+    .cart-content, .delivery-content, .contact-content {
+        display: block;
+    }
+    
+    .cart-items, .order-summary, 
+    .delivery-options-container, 
+    .contact-form, .order-summary-mini,
+    .confirmation-content {
+        background: white;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    .section-header h1 {
+        color: black;
+    }
+    
+    /* Reset all colors for better printing */
+    * {
+        color: black !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Přidání podpory pro režim tmavého a světlého motivu */
+@media (prefers-color-scheme: dark) {
+    /* Tyto hodnoty již jsou tmavé, takže není potřeba je měnit */
+}
+
+@media (prefers-color-scheme: light) {
+    /* Pokud by uživatel preferoval světlý motiv, ale váš e-shop je tmavý
+       můžete tuto část nechat prázdnou, jelikož váš design je tmavý */
+}
+
+/* Vylepšení pro zobrazení na Windows/MacOS ve vysokém rozlišení */
+@media (min-width: 1800px) {
+    .container {
+        max-width: 1440px;
+    }
+    
+    .section-header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .cart-content, 
+    .delivery-content,
+    .contact-content {
+        gap: 50px;
+    }
+    
+    .order-summary,
+    .order-summary-mini,
+    .cart-items,
+    .delivery-options-container,
+    .contact-form {
+        padding: 30px;
+    }
+    
+    .progress-steps {
+        padding: 25px 10px; /* Zajištění paddingu 10px od okrajů */
+    }
+}
+
+/* JavaScript doplnění pro lepší změnu velikosti na výšku */
+.js-height-resize {
+    height: calc(var(--vh, 1vh) * 100);
+}

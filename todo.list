@@ -8,25 +8,21 @@ Udělat funkční vyhledávání
 Kompletně mobilní responzivita 
  
 
- 
-// Košík backend
-Kompletní mobilní responzivita pro celý web i Košík 
+// DOdělat SEo na ostatní stránky
 
-// Přidat nějaký dárek k objednávce
+                    // Pozdější upravy //
 
-// SEO
-přidat kompletní seo na stránku a další věci ohladně headu na stránce 
+//Meta Pixel udělat kompletní meta pixel pro stránku sajrajt.cz
 
-//Meta Pixel
-udělat kompletní meta pixel pro stránku sajrajt.cz
+// Zkusit jestli funguje qrkod v poslední sekci košíku třeba na hostingu to zkusit 
+
+// Zkusit vymyslet lepší SEO pro stránku napsat do AI co mám všechno udělat abych měl nejlepší SEO 
+
+// Dořešit a přepsat ještě nějak podmínky aby dávali více smysl nečetl jsem je zatim
+
+// Udělat Router
 
 // Nginx nastavení reverse - zabanovat prohlížení faktur tady http://127.0.0.1:3000/admin/faktury/FV20250001.pdf
-
-
-
-
-
-
 
 
 
@@ -65,3 +61,14 @@ INSERT INTO coupons (
     '2026-12-31',  -- Platnost do konce roku 2025
     1              -- Aktivní
 );
+
+
+
+
+
+
+
+
+
+nevím proč ale zobrazilo se mi to tam dvakrát nechápu 
+všechen kod jsem přidal do stávajícího Cart.css a Cart.js nebudu dělat zbytečně soubory navíc jen kvuli tomuto a můžeš to udělat tak aby to bylo nějak minimalistyčtější? a navíc progresbar u dopravy zdarma je nějak špatně posunutý a text máte dopravu zdarma je přesně přes tento progress bar co působí otřesně no takže udělej upravy co jsem ti řekl a pošli mi celý kod co mam přidat zpět a neukazuj tam ty levely všechny pod sebou stačí podle toho kolik zákazník má v košíku tak přesně ta odměna se tam ukáže a chci aby když třeba u nějakého zboží v košíku přidá množství tak aby se to automaticky updatnula i doprava zdarma i odměna a u každé odměny podle vzácnosti přidej nějaký hezký efekt a barvu

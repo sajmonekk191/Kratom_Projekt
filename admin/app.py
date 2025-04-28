@@ -49,7 +49,7 @@ CORS(app,
      expose_headers=["Content-Type", "X-CSRFToken"])
 
 # Konfigurace
-app.config['SECRET_KEY'] = 'x'
+app.config['SECRET_KEY'] = '55'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=30)
@@ -568,7 +568,7 @@ def generate_invoice_pdf(invoice_number, order, customer):
         draw_czech_text(p, width - 115, y_summary - 25, f"{order['total']:.2f} Kč".replace('.', ','), size=14, style='bold')
         
         # QR kód
-        iban = 'CZ1830300000002411153019'
+        iban = 'CZ6130300000003361960019'
         formattedAmount = f"{order['total']:.2f}"
         message = f"Objednávka číslo #{order['order_number']}"
         
@@ -679,7 +679,7 @@ def generate_invoice_pdf(invoice_number, order, customer):
                 draw_czech_text(p, width - 115, y_summary - 25, f"{order['total']:.2f} Kč".replace('.', ','), size=14, style='bold')
                 
                 # QR kód
-                iban = 'CZ1830300000002411153019'
+                iban = 'CZ6130300000003361960019'
                 formattedAmount = f"{order['total']:.2f}"
                 message = f"Objednávka číslo #{order['order_number']}"
                 
@@ -733,7 +733,7 @@ def get_company_info():
         'phone': settings.get('shop_phone', '+420 732 189 053'),
         'email': settings.get('shop_email', 'info@sajrajt.cz'),
         'web': settings.get('shop_web', 'www.sajrajt.cz'),
-        'bank_account': settings.get('bank_account', '2411153019/3030')
+        'bank_account': settings.get('bank_account', '3361960019/3030')
     }
     
     return company_info
@@ -1366,6 +1366,29 @@ def get_order(order_number):
     if invoice:
         order_dict['invoice'] = dict(invoice)
     
+    # Načtení metadat objednávky
+    metadata_rows = conn.execute('''
+    SELECT key, value FROM order_metadata WHERE order_id = ?
+    ''', (order['id'],)).fetchall()
+    
+    metadata = {}
+    for row in metadata_rows:
+        # Zkusíme konvertovat hodnoty na boolean, pokud je to možné
+        if row['value'].lower() in ('true', 'false'):
+            metadata[row['key']] = row['value'].lower() == 'true'
+        else:
+            metadata[row['key']] = row['value']
+    
+    order_dict['metadata'] = metadata
+    
+    # Načtení informací o odměně
+    reward = conn.execute('''
+    SELECT level, name, threshold FROM order_rewards WHERE order_id = ?
+    ''', (order['id'],)).fetchone()
+    
+    if reward:
+        order_dict['reward'] = dict(reward)
+    
     conn.close()
     
     return jsonify({
@@ -1499,6 +1522,28 @@ def create_order():
                 WHERE id = ?
                 ''', (product['quantity'], product_id))
         
+        # Zpracování metadat
+        if 'metadata' in data and data['metadata']:
+            metadata = data['metadata']
+            for key, value in metadata.items():
+                conn.execute('''
+                INSERT INTO order_metadata (order_id, key, value)
+                VALUES (?, ?, ?)
+                ''', (order_id, key, str(value)))
+        
+        # Zpracování informací o odměně
+        if 'reward' in data and data['reward']:
+            reward = data['reward']
+            conn.execute('''
+            INSERT INTO order_rewards (order_id, level, name, threshold)
+            VALUES (?, ?, ?, ?)
+            ''', (
+                order_id,
+                reward.get('level', 0),
+                reward.get('name', ''),
+                reward.get('threshold', 0)
+            ))
+        
         # Commit transakce
         conn.commit()
         
@@ -1518,6 +1563,29 @@ def create_order():
         ''', (order_id,)).fetchall()
         
         order_dict['items'] = [dict(item) for item in items]
+        
+        # Načtení metadat
+        metadata_rows = conn.execute('''
+        SELECT key, value FROM order_metadata WHERE order_id = ?
+        ''', (order_id,)).fetchall()
+        
+        metadata = {}
+        for row in metadata_rows:
+            # Zkusíme konvertovat boolean hodnoty
+            if row['value'].lower() in ('true', 'false'):
+                metadata[row['key']] = row['value'].lower() == 'true'
+            else:
+                metadata[row['key']] = row['value']
+                
+        order_dict['metadata'] = metadata
+        
+        # Načtení odměny
+        reward = conn.execute('''
+        SELECT level, name, threshold FROM order_rewards WHERE order_id = ?
+        ''', (order_id,)).fetchone()
+        
+        if reward:
+            order_dict['reward'] = dict(reward)
         
         return jsonify({
             'status': 'success',
@@ -2528,7 +2596,7 @@ def send_invoice_email_direct(invoice_info, file_path, customer_data, order_data
     smtp_server = "wes1-smtp.wedos.net"
     smtp_port = 587
     from_email = "sn@snovak.cz"  # Přímá emailová adresa
-    password = "!2"      # Přímé heslo (pro účely testování)
+    password = "!66"      # Přímé heslo (pro účely testování)
     
     # Údaje z parametrů
     to_email = customer_data['email']
@@ -2589,7 +2657,7 @@ def send_invoice_email_direct(invoice_info, file_path, customer_data, order_data
     variable_symbol = order_number[:8] + order_number[-2:] if len(order_number) >= 10 else order_number
     
     # Vytvoření URL pro QR kód
-    qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SPD*1.0*ACC:CZ1830300000002411153019*AM:{order_data['total']:.2f}*CC:CZK*MSG:Objednavka{order_number}*X-VS:{variable_symbol}"
+    qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SPD*1.0*ACC:CZ6130300000003361960019*AM:{order_data['total']:.2f}*CC:CZK*MSG:Objednavka{order_number}*X-VS:{variable_symbol}"
     
     # Sestavení těla emailu v HTML s vylepšeným responzivním designem
     subject = f"Vaše faktura č. {invoice_number} - Sajrajt.cz"
@@ -2662,7 +2730,7 @@ def send_invoice_email_direct(invoice_info, file_path, customer_data, order_data
                             <td width="33%" style="padding: 0 6px 0 0;">
                                 <div style="background-color: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px solid rgba(105, 240, 174, 0.3);">
                                     <p style="margin: 0; color: #69f0ae; text-transform: uppercase; font-size: 13px; font-weight: 600;">ČÍSLO ÚČTU</p>
-                                    <p style="margin: 8px 0 0; color: #ffffff; font-weight: bold; font-size: 16px;">2411153019/3030</p>
+                                    <p style="margin: 8px 0 0; color: #ffffff; font-weight: bold; font-size: 16px;">3361960019/3030</p>
                                 </div>
                             </td>
                             

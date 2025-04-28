@@ -961,6 +961,10 @@ document.addEventListener('DOMContentLoaded', function() {
             price: Number(window.shippingPrice)  // Zajistíme, že je to číslo
         };
         
+        // Přidání informace, zda je doprava zdarma
+        const isFreeShipping = window.shippingPrice === 0;
+        shipping.is_free = isFreeShipping;
+        
         // Pokud je vybrána Zásilkovna, přidáme informace o pobočce
         if (shipping.method === 'zasilkovna') {
             const branchId = localStorage.getItem('selectedBranchId');
@@ -984,9 +988,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         const discount = window.discountAmount || 0;
-
+    
         // Příprava poznámky
-        const note = document.getElementById('note').value;
+        const note = document.getElementById('note')?.value || '';
         
         // Příprava informací o kupónu, pokud byl použit
         const coupon = appliedCoupon ? {
@@ -998,7 +1002,74 @@ document.addEventListener('DOMContentLoaded', function() {
         const subtotal = calculateSubtotal();
         const total = calculateTotal();
         
-        return {
+        // NOVÉ: Příprava metadat - MUSÍ BÝT INICIALIZOVÁNO JAKO OBJEKT!
+        const metadata = {
+            free_shipping: isFreeShipping
+        };
+        
+        // NOVÉ: Přidání informace o dopravě zdarma
+        const freeShippingThreshold = window.RewardsSystem?.config?.FREE_SHIPPING_THRESHOLD || 1500;
+        const hasFreeShipping = subtotal >= freeShippingThreshold;
+        
+        // Přidáme metadata s informacemi o odměnách a dopravě zdarma
+        metadata.free_shipping = hasFreeShipping;
+        metadata.free_shipping_threshold = freeShippingThreshold;
+        
+        // NOVÉ: Zajistíme, že máme inicializovanou proměnnou pro poznámku
+        let finalNote = note;
+        
+        // NOVÉ: Získání informací o odměně z RewardsSystem
+        let reward = null;
+        if (window.RewardsSystem) {
+            // Pokusit se získat aktuální úroveň odměny
+            const currentReward = window.RewardsSystem.getHighestAvailableReward 
+                ? window.RewardsSystem.getHighestAvailableReward(subtotal) 
+                : null;
+            
+            if (currentReward) {
+                reward = {
+                    level: currentReward.level,
+                    name: currentReward.name,
+                    threshold: currentReward.threshold
+                };
+                
+                // Přidáme informaci o odměně i do metadat
+                metadata.reward_level = reward.level;
+                metadata.reward_name = reward.name;
+                
+                // Přidáme informaci o odměně i do poznámky pro lepší viditelnost v admin rozhraní
+                const rewardNote = `Odměna: Level ${reward.level}`;
+                finalNote = note ? `${rewardNote}\n\n${note}` : rewardNote;
+            } else {
+                // Alternativní přístup, pokud není k dispozici metoda getHighestAvailableReward
+                // Projdeme konfiguraci odměn a najdeme nejvyšší dostupnou úroveň
+                if (window.RewardsSystem.config && window.RewardsSystem.config.REWARDS) {
+                    for (let i = window.RewardsSystem.config.REWARDS.length - 1; i >= 0; i--) {
+                        const rewardConfig = window.RewardsSystem.config.REWARDS[i];
+                        if (subtotal >= rewardConfig.threshold) {
+                            reward = {
+                                level: rewardConfig.level,
+                                name: rewardConfig.name,
+                                threshold: rewardConfig.threshold
+                            };
+                            
+                            // Přidáme informaci o odměně i do metadat
+                            metadata.reward_level = reward.level;
+                            metadata.reward_name = reward.name;
+                            
+                            // Přidáme informaci o odměně i do poznámky pro lepší viditelnost v admin rozhraní
+                            const rewardNote = `Odměna: Level ${reward.level}`;
+                            finalNote = note ? `${rewardNote}\n\n${note}` : rewardNote;
+                            
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Finální data objednávky
+        const orderData = {
             customer,
             items,
             shipping,
@@ -1006,36 +1077,44 @@ document.addEventListener('DOMContentLoaded', function() {
             subtotal: Number(subtotal),
             total: Number(total),
             discount: Number(discount),
-            note,
+            note: finalNote,  // Použijeme inicializovanou poznámku
             coupon: appliedCoupon ? {
                 code: appliedCoupon.code,
                 discount: discountAmount,
                 discount_type: appliedCoupon.type,
                 discount_value: appliedCoupon.value,
                 description: appliedCoupon.description
-            } : null
+            } : null,
+            metadata: metadata,
+            reward: reward
         };
+        
+        // Pro debugging - vypíšeme obsah orderData do konzole
+        console.log("Připravená data objednávky:", orderData);
+        
+        return orderData;
     }
+    
 // Funkce pro odeslání objednávky na server  
 function completeOrderWithApi() {
     try {
-        // Validace formuláře
+        // Validate form
         if (!validateContactForm()) {
-            showNotification('Vyplňte prosím všechny povinné údaje', 'error');
+            showNotification('Please fill in all required fields', 'error');
             return;
         }
         
-        // Zobrazení loaderu
+        // Show loader
         showLoader();
         
-        // ULOŽENÍ KOŠÍKU PRO PŘÍPAD NEÚSPĚCHU
+        // BACKUP CART IN CASE OF FAILURE
         const backupCart = JSON.stringify(cart);
         
-        // Příprava dat objednávky
+        // Prepare order data
         const orderData = prepareOrderData();
-        console.log('Připravená data objednávky:', orderData);
+        console.log('Prepared order data:', orderData);
         
-        // Přidáme informaci o použitém kupónu
+        // Add coupon information
         if (window.appliedCoupon) {
             orderData.coupon = {
                 code: window.appliedCoupon.code,
@@ -1046,7 +1125,7 @@ function completeOrderWithApi() {
             };
         }
         
-        // Volání API pro vytvoření objednávky
+        // Use correct backend URL
         fetch('http://127.0.0.1:5000/api/shop/create-order', {
             method: 'POST',
             headers: {
@@ -1057,75 +1136,75 @@ function completeOrderWithApi() {
         })
         .then(function(response) {
             if (!response.ok) {
-                throw new Error('Chyba při odesílání objednávky: ' + response.statusText);
+                throw new Error('Error sending order: ' + response.statusText);
             }
             return response.json();
         })
         .then(function(data) {
-            // Aktualizace detailů potvrzení
+            // Update confirmation details
             if (typeof updateConfirmationWithOrderData === 'function') {
                 updateConfirmationWithOrderData(data.order);
             } else if (window.updateConfirmationWithOrderData) {
                 window.updateConfirmationWithOrderData(data.order);
             }
             
-            // Uložení čísla objednávky do lokálního úložiště pro budoucí reference
+            // Save order number to local storage for future reference
             if (data.order.order_number) {
                 localStorage.setItem('lastOrderNumber', data.order.order_number);
             }
             
-            // Přidáme třídu pro identifikaci dokončené objednávky
+            // Add class for completed order identification
             document.body.classList.add('confirmation-page');
             
-            // Předběžně skryjeme progress bar
+            // Pre-hide progress bar
             const header = document.querySelector('header');
             if (header) {
                 header.style.display = 'none';
             }
             
-            // Přechod na potvrzovací obrazovku
+            // Go to confirmation screen
             if (typeof goToStep === 'function') {
                 goToStep('confirmation');
             } else if (window.goToStep) {
                 window.goToStep('confirmation');
             }
             
-            // Skrytí loaderu
+            // Hide loader
             hideLoader();
             
-            // Přehrání konfetti efektu pro radost z úspěšné objednávky
+            // Play confetti effect for happy successful order
             if (typeof playOrderConfetti === 'function') {
                 playOrderConfetti();
             } else if (window.playOrderConfetti) {
                 window.playOrderConfetti();
             }
             
-            // NASTAVÍME FLAG V SESSION STORAGE
-            // Pomocné řešení pro reload stránky
+            // SET FLAG IN SESSION STORAGE
+            // Helper solution for page reload
             sessionStorage.setItem('orderCompleted', 'true');
             sessionStorage.setItem('lastOrderNumber', data.order.order_number);
         })
         .catch(function(error) {
-            // Skrytí loaderu
+            // Hide loader
             hideLoader();
             
-            // OBNOVENÍ KOŠÍKU Z BACKUPU PŘI CHYBĚ
+            // RESTORE CART FROM BACKUP ON ERROR
             try {
                 cart = JSON.parse(backupCart);
                 window.cart = cart;
                 saveCart();
             } catch (e) {
-                console.error('Nepovedlo se obnovit košík', e);
+                console.error('Failed to restore cart', e);
             }
             
-            // Zobrazení chyby
-            showNotification(error.message || 'Došlo k chybě při dokončování objednávky', 'error');
-            console.error('Chyba při odesílání objednávky:', error);
+            // Show error
+            showNotification(error.message || 'An error occurred while completing the order', 'error');
+            console.error('Error sending order:', error);
         });
     } catch (error) {
-        console.error('Neočekávaná chyba při přípravě dat:', error);
+        console.error('Unexpected error preparing data:', error);
         hideLoader();
-        showNotification('Došlo k neočekávané chybě: ' + error.message, 'error');
+        showNotification('An unexpected error occurred: ' + error.message, 'error');
     }
 }
 
@@ -1422,6 +1501,8 @@ function updatePaymentMethodsAvailability() {
     // Najdeme všechny platební metody
     const paymentCards = document.querySelectorAll('.payment-options .option-card');
     
+    console.log(`Updating payment methods for delivery: ${deliveryMethod}`);
+    
     // Pro každou platební metodu určíme, zda bude povolena
     paymentCards.forEach(card => {
         const radioInput = card.querySelector('input[type="radio"]');
@@ -1492,43 +1573,89 @@ function updatePaymentMethodsAvailability() {
         }
     });
     
-    // Zkontrolujeme, zda je nějaká platební metoda vybraná
+    // IMPROVEMENT: Auto-select a compatible payment method if none is selected
     const hasSelectedPayment = document.querySelector('.payment-options input[type="radio"]:checked');
+    
     if (!hasSelectedPayment) {
-        const firstEnabledPayment = document.querySelector('.payment-options .option-card:not(.payment-fully-disabled) input[type="radio"]');
-        if (firstEnabledPayment) {
-            firstEnabledPayment.checked = true;
+        // For express delivery or pickup, prefer the personal-express option
+        if (deliveryMethod === 'express' || deliveryMethod === 'pickup') {
+            const personalExpressOption = document.querySelector('input[name="payment"][value="personal-express"]:not([disabled])');
+            if (personalExpressOption) {
+                personalExpressOption.checked = true;
+                console.log("Auto-selected personal-express payment option");
+            }
+        } else {
+            // For other delivery methods, select the first available payment option
+            const firstEnabledPayment = document.querySelector('.payment-options .option-card:not(.payment-fully-disabled) input[type="radio"]');
+            if (firstEnabledPayment) {
+                firstEnabledPayment.checked = true;
+                console.log(`Auto-selected payment option: ${firstEnabledPayment.value}`);
+            }
         }
     }
+    
+    // Call updatePaymentFee to update the payment cost based on the selection
+    updatePaymentFee();
 }
 
-// Nastavení event listeneru pro všechny radio buttony dopravy
-function setupPaymentRestrictions() {
-    // Najdeme všechny radio buttony pro dopravu
-    const deliveryRadios = document.querySelectorAll('input[name="delivery"]');
+function setupDeliveryPaymentIntegration() {
+    // Get all delivery radio inputs
+    const deliveryOptions = document.querySelectorAll('input[name="delivery"]');
     
-    // Odstraníme existující posluchače (pro jistotu)
-    deliveryRadios.forEach(radio => {
-        const newRadio = radio.cloneNode(true);
-        radio.parentNode.replaceChild(newRadio, radio);
-    });
-    
-    // Přidáme nové posluchače
-    document.querySelectorAll('input[name="delivery"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            updatePaymentMethodsAvailability();
+    // Create new event listeners for delivery options
+    deliveryOptions.forEach(option => {
+        const newOption = option.cloneNode(true);
+        option.parentNode.replaceChild(newOption, option);
+        
+        newOption.addEventListener('change', function() {
+            console.log(`Delivery changed to: ${this.value}`);
+            
+            // Update shipping price
+            updateShippingPrice();
+            
+            // This will also call updatePaymentMethodsAvailability
+            // and updatePaymentFee through our improved chain
         });
     });
     
-    // Spustíme aktualizaci hned při načtení
+    // Get all payment radio inputs
+    const paymentOptions = document.querySelectorAll('input[name="payment"]');
+    
+    // Create new event listeners for payment options
+    paymentOptions.forEach(option => {
+        const newOption = option.cloneNode(true);
+        option.parentNode.replaceChild(newOption, option);
+        
+        newOption.addEventListener('change', function() {
+            console.log(`Payment changed to: ${this.value}`);
+            updatePaymentFee();
+        });
+    });
+    
+    // Add CSS for visual feedback on auto-selection
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .auto-selected {
+            animation: pulse-highlight 1.5s ease;
+        }
+        
+        @keyframes pulse-highlight {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(105, 240, 174, 0); }
+            50% { box-shadow: 0 0 0 8px rgba(105, 240, 174, 0.5); }
+        }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Initialize on page load
     updatePaymentMethodsAvailability();
+    console.log("Delivery and payment integration setup completed");
 }
 
-// Spustíme nastavení při načtení stránky
+// Call this function during initialization to set up the improved behavior
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupPaymentRestrictions);
+    document.addEventListener('DOMContentLoaded', setupDeliveryPaymentIntegration);
 } else {
-    setupPaymentRestrictions();
+    setupDeliveryPaymentIntegration();
 }
 
 // Volání načtení dat z cookies při načtení stránky
@@ -1719,6 +1846,18 @@ function goToStep(step) {
         });
     }, 300);
 }
+
+// Nastavuje správnou výšku pro mobilní zařízení (řeší problém s adresní lištou v mobilních prohlížečích)
+function setVhVariable() {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Nastavení při načtení stránky
+setVhVariable();
+
+// Nastavení při změně velikosti okna
+window.addEventListener('resize', setVhVariable);
 
 /**
  * Skrytí všech sekcí
@@ -1912,6 +2051,11 @@ function removeItem(id) {
                     renderCartItems();
                     updatePrices();
                     updateCartCounter();
+                }
+                
+                // NOVÉ: Zajistit přepočet dopravy zdarma při odebrání položky
+                if (window.RewardsSystem) {
+                    window.RewardsSystem.updateSystemStatus();
                 }
                 
                 // Informování uživatele
@@ -2161,69 +2305,121 @@ function calculateTotal() {
 * Aktualizace ceny dopravy podle vybrané metody
 */
 function updateShippingPrice() {
-const selectedDelivery = document.querySelector('input[name="delivery"]:checked');
+    const selectedDelivery = document.querySelector('input[name="delivery"]:checked');
 
-if (selectedDelivery) {
-    const value = selectedDelivery.value;
-    
-    switch (value) {
-        case 'zasilkovna':
-            window.shippingPrice = 79;
-            break;
-        case 'ppl':
-            window.shippingPrice = 89;
-            break;
-        case 'express':
-            window.shippingPrice = 149;
-            break;
-        case 'pickup':
-            window.shippingPrice = 0;
-            break;
-        default:
-            window.shippingPrice = 0;
+    if (selectedDelivery) {
+        const value = selectedDelivery.value;
+        
+        // Store the previous price for comparison
+        const previousPrice = window.shippingPrice;
+        
+        switch (value) {
+            case 'zasilkovna':
+                window.shippingPrice = 79;
+                break;
+            case 'ppl':
+                window.shippingPrice = 89;
+                break;
+            case 'express':
+                window.shippingPrice = 149;
+                break;
+            case 'pickup':
+                window.shippingPrice = 0;
+                break;
+            default:
+                window.shippingPrice = 0;
+        }
+        
+        // Uložení vybrané metody
+        saveShippingMethod(value);
+        
+        // IMPROVEMENT: First update payment method restrictions
+        updatePaymentMethodsAvailability();
+        
+        // IMPROVEMENT: Then call updatePaymentFee to ensure payment cost is updated
+        updatePaymentFee();
+    } else {
+        // Pokud není nic vybráno, nastavíme cenu na 0
+        window.shippingPrice = 0;
     }
-    
-    // Uložení vybrané metody
-    saveShippingMethod(value);
-} else {
-    // Pokud není nic vybráno, nastavíme cenu na 0
-    window.shippingPrice = 0;
-}
 
-// Aktualizace cen
-updatePrices();
+    // Aktualizace cen
+    updatePrices();
 }
 
 /**
 * Aktualizace poplatku za platbu podle vybrané metody
 */
 function updatePaymentFee() {
-const selectedPayment = document.querySelector('input[name="payment"]:checked');
-
-if (selectedPayment) {
-    const value = selectedPayment.value;
+    const selectedPayment = document.querySelector('input[name="payment"]:checked');
+    const selectedDelivery = document.querySelector('input[name="delivery"]:checked');
     
-    switch (value) {
-        case 'card':
-        case 'bank':
-            window.paymentFee = 0;
-            break;
-        case 'cod':
-            window.paymentFee = 39;
-            break;
-        default:
-            window.paymentFee = 0;
+    // IMPROVEMENT: Check if we need to auto-select a payment method
+    if (!selectedPayment && selectedDelivery) {
+        // For express delivery or pickup, auto-select the personal-express option
+        if (selectedDelivery.value === 'express' || selectedDelivery.value === 'pickup') {
+            const personalExpressOption = document.querySelector('input[name="payment"][value="personal-express"]');
+            if (personalExpressOption && !personalExpressOption.disabled) {
+                personalExpressOption.checked = true;
+                
+                // Add a visual feedback for the automatically selected option
+                const card = personalExpressOption.closest('.option-card');
+                if (card) {
+                    card.classList.add('auto-selected');
+                    setTimeout(() => {
+                        card.classList.remove('auto-selected');
+                    }, 1500);
+                }
+            }
+        } else {
+            // For other delivery methods, select the first available payment option
+            const firstAvailablePayment = document.querySelector('input[name="payment"]:not([disabled])');
+            if (firstAvailablePayment) {
+                firstAvailablePayment.checked = true;
+            }
+        }
     }
     
-    // Uložení vybrané metody
-    savePaymentMethod(value);
-} else {
-    // Pokud není nic vybráno, nastavíme poplatek na 0
-    window.paymentFee = 0;
-}
+    // Get the selected payment (which might have just been auto-selected)
+    const paymentOption = document.querySelector('input[name="payment"]:checked');
 
-// Aktualizace cen
-updatePrices();
+    if (paymentOption) {
+        const value = paymentOption.value;
+        
+        // Store previous fee
+        const previousFee = window.paymentFee;
+        
+        // Handle express delivery or pickup with special payment
+        if ((selectedDelivery && (selectedDelivery.value === 'express' || selectedDelivery.value === 'pickup')) 
+            && value === 'personal-express') {
+            window.paymentFee = 0; // Free payment for express delivery/pickup
+        } else {
+            // Standard payment fee logic
+            switch (value) {
+                case 'card':
+                case 'bank':
+                case 'personal-express':
+                    window.paymentFee = 0;
+                    break;
+                case 'cod':
+                    window.paymentFee = 39;
+                    break;
+                default:
+                    window.paymentFee = 0;
+            }
+        }
+        
+        // Uložení vybrané metody
+        savePaymentMethod(value);
+        
+        console.log(`Payment method updated to ${value}, fee: ${window.paymentFee} Kč`);
+    } else {
+        // Pokud není nic vybráno, nastavíme poplatek na 0
+        window.paymentFee = 0;
+    }
+
+    // Aktualizace cen
+    updatePrices();
 }
     /**
     * Odstranění slevového kupónu
@@ -2529,8 +2725,11 @@ updatePrices();
                 // Zobrazení loaderu
                 showLoader();
                 
+                // DŮLEŽITÁ ZMĚNA: Přidání specifické URL s portem pro backend
+                const backendUrl = 'http://127.0.0.1:5000';
+                
                 // Použijeme číslo objednávky pro získání/vytvoření faktury
-                fetch(`/api/invoices/${order.order_number}`, {
+                fetch(`${backendUrl}/api/invoices/${order.order_number}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2540,7 +2739,8 @@ updatePrices();
                 .then(data => {
                     if (data.status === 'success' && data.invoice) {
                         // Spustíme stahování faktury
-                        window.location.href = `/api/invoices/${data.invoice.invoice_number}/download`;
+                        // ZMĚNA: Použití plné URL včetně portu
+                        window.location.href = `${backendUrl}/api/invoices/${data.invoice.invoice_number}/download`;
                         
                         // Skryjeme loader po krátké prodlevě
                         setTimeout(() => {
@@ -2632,7 +2832,7 @@ updatePrices();
     * @param {string} [message] - Nepovinná zpráva pro příjemce
     */
     function generatePaymentQR(orderId, amount) {
-        const iban = 'CZ1830300000002411153019';
+        const iban = 'CZ6130300000003361960019';
         const formattedAmount = parseFloat(amount).toFixed(2);
     
         // Zpráva pro příjemce
@@ -2729,6 +2929,7 @@ updatePrices();
                 case 'card': paymentText = 'Online platba kartou'; break;
                 case 'bank': paymentText = 'Bankovní převod'; break;
                 case 'cod': paymentText = 'Dobírka'; break;
+                case 'personal-express':  paymentText = 'Na místě'; break;
             }
         }
         
@@ -3052,11 +3253,14 @@ updatePrices();
  * Přidejte tuto funkci do souboru Cart.js
  */
 function secureDownloadInvoice(invoiceNumber, orderNumber) {
-    // Zobrazení loaderu
+    // Displaying loader
     showLoader();
     
-    // Nejprve získáme token pro stažení faktury
-    fetch(`/api/invoices/${invoiceNumber}/get-download-token`, {
+    // IMPORTANT CHANGE: Use the correct backend URL
+    const backendUrl = 'http://127.0.0.1:5000';
+    
+    // First get a token for downloading the invoice
+    fetch(`${backendUrl}/api/invoices/${invoiceNumber}/get-download-token`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -3068,33 +3272,33 @@ function secureDownloadInvoice(invoiceNumber, orderNumber) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success' && data.token) {
-            // Pokud jsme získali token, vytvoříme odkaz pro stažení a automaticky ho klikneme
-            const downloadUrl = `/api/invoices/${invoiceNumber}/download?token=${encodeURIComponent(data.token)}`;
+            // If we got a token, create a download link and automatically click it
+            const downloadUrl = `${backendUrl}/api/invoices/${invoiceNumber}/download?token=${encodeURIComponent(data.token)}`;
             
-            // Vytvoření dočasného odkazu pro stažení
+            // Create a temporary link for download
             const downloadLink = document.createElement('a');
             downloadLink.href = downloadUrl;
             downloadLink.download = `Faktura-${invoiceNumber}.pdf`;
             downloadLink.style.display = 'none';
             document.body.appendChild(downloadLink);
             
-            // Kliknutí na odkaz a spuštění stahování
+            // Click the link to start download
             downloadLink.click();
             
-            // Odstranění odkazu po stažení
+            // Remove the link after download
             setTimeout(() => {
                 document.body.removeChild(downloadLink);
                 hideLoader();
             }, 1000);
         } else {
             hideLoader();
-            showNotification(data.message || 'Nepodařilo se získat token pro stažení faktury', 'error');
+            showNotification(data.message || 'Failed to get token for invoice download', 'error');
         }
     })
     .catch(error => {
         hideLoader();
-        console.error('Chyba při získávání tokenu:', error);
-        showNotification('Došlo k chybě při stahování faktury', 'error');
+        console.error('Error getting token:', error);
+        showNotification('Error downloading invoice', 'error');
     });
 }
 
@@ -3212,103 +3416,42 @@ function updateConfirmationWithOrderData(order) {
 let isDownloadSetup = false; // Globální flag pro kontrolu inicializace
 
 function setupInvoiceDownload() {
-    // Kontrola, zda už není inicializováno
+    // Check if already initialized
     if (isDownloadSetup) return;
     
     const downloadBtn = document.getElementById('download-invoice-btn');
     if (!downloadBtn) return;
     
-    isDownloadSetup = true; // Nastavíme flag
+    isDownloadSetup = true; // Set flag
     
-    // Odstranění všech existujících event listenerů
+    // Remove all existing event listeners
     const newBtn = downloadBtn.cloneNode(true);
     downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
 
-    newBtn.addEventListener('click', async function(e) {
+    newBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
         
+        // Display loader
         showLoader();
         
         try {
-            // 1. Získání čísla objednávky
+            // 1. Get order number
             const orderNumberElement = document.querySelector('.confirmation-info strong');
             if (!orderNumberElement) {
-                throw new Error('Číslo objednávky nebylo nalezeno');
+                throw new Error('Order number not found');
             }
             
             const orderNumber = orderNumberElement.textContent.replace('#', '').trim();
             
-            // 2. Explicitní URL pro backend
-            const backendUrl = 'http://127.0.0.1:5000';
-            
-            // 3. Získání faktury
-            const invoiceResponse = await fetch(`${backendUrl}/api/invoices/${orderNumber}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const invoiceData = await invoiceResponse.json();
-            
-            if (invoiceData.status !== 'success' || !invoiceData.invoice) {
-                throw new Error(invoiceData.message || 'Nepodařilo se získat fakturu');
-            }
-            
-            const invoiceNumber = invoiceData.invoice.invoice_number;
-            
-            // 4. Získání download tokenu
-            const tokenResponse = await fetch(`${backendUrl}/api/invoices/${invoiceNumber}/get-download-token`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    order_number: orderNumber
-                })
-            });
-            
-            const tokenData = await tokenResponse.json();
-            
-            if (tokenData.status !== 'success' || !tokenData.token) {
-                throw new Error(tokenData.message || 'Nepodařilo se získat token pro stažení');
-            }
-            
-            // 5. Vytvoření dočasného odkazu pro stahování
-            const downloadUrl = `${backendUrl}/api/invoices/${invoiceNumber}/download?token=${encodeURIComponent(tokenData.token)}`;
-            
-            // 6. Vytvoření skrytého iframe pro stahování
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = downloadUrl;
-            document.body.appendChild(iframe);
-            
-            // 7. Alternativní metoda pro prohlížeče, které blokují iframe
-            setTimeout(() => {
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = `faktura-${invoiceNumber}.pdf`;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }, 100);
-            
-            // 8. Úklid a notifikace
-            setTimeout(() => {
-                if (document.body.contains(iframe)) {
-                    document.body.removeChild(iframe);
-                }
-                hideLoader();
-                showNotification('Faktura byla stažena', 'success');
-            }, 2000);
+            // 2. Call the secure download function with correct port
+            secureDownloadInvoice(orderNumber, orderNumber);
             
         } catch (error) {
-            console.error('Chyba při stahování faktury:', error);
+            console.error('Error downloading invoice:', error);
             hideLoader();
-            showNotification(error.message || 'Došlo k chybě při stahování faktury', 'error');
+            showNotification(error.message || 'Error downloading invoice', 'error');
         }
     });
 }
@@ -3712,7 +3855,7 @@ function updateModalContent() {
         modalShippingMethod.textContent = shippingMethodText;
     }
     
-    // Získání způsobu platby
+    // Získání způsobu platby - OPRAVENO
     const paymentSelected = document.querySelector('input[name="payment"]:checked');
     if (paymentSelected && modalPaymentMethod) {
         let paymentMethodText = 'Nedefinováno';
@@ -3726,6 +3869,9 @@ function updateModalContent() {
                 break;
             case 'cod':
                 paymentMethodText = 'Dobírka';
+                break;
+            case 'personal-express':
+                paymentMethodText = 'Na místě';
                 break;
         }
         
@@ -3912,6 +4058,733 @@ if (typeof completeOrderWithApi !== 'function' && typeof window.completeOrderWit
         }
     }
 }
+
+/**
+ * Kompletní řešení pro dopravu zdarma a systém dárků - jednoduchá a funkční verze
+ * Přidejte tento kód na konec souboru Cart.js
+ */
+(function() {
+    // Definujeme objekt pro naši funkcionalitu, který bude izolovaný od globálního prostoru
+    const RewardsSystem = {
+        // Základní konfigurace
+        config: {
+            FREE_SHIPPING_THRESHOLD: 1500, // Doprava zdarma od 1500 Kč
+            REWARDS: [
+                { level: 1, name: "Level 1 Dárek", threshold: 300, icon: "gift" },
+                { level: 2, name: "Level 2 Dárek", threshold: 1000, icon: "award" },
+                { level: 3, name: "Level 3 Dárek", threshold: 1999, icon: "gem" },
+                { level: 4, name: "Level 4 Dárek", threshold: 3500, icon: "crown" },
+                { level: 5, name: "Level 5 Dárek MAX", threshold: 9999, icon: "trophy" }
+            ]
+        },
+        
+        // Indikátor, že aktualizace probíhá
+        isUpdating: false,
+        
+        // Inicializační funkce - volána po DOMContentLoaded
+        init: function() {
+            console.log('Inicializace dopravy zdarma a odměn...');
+            
+            // Vytvoření a vložení HTML elementů
+            this.addShippingBanner();
+            this.addRewardSection();
+            
+            // Nastavení event listenerů
+            this.setupEventListeners();
+            this.extendCartFunctions();
+            
+            // Spuštění první aktualizace stavu
+            this.updateSystemStatus();
+            setTimeout(() => this.updateSystemStatus(), 500);
+        },
+        
+        /**
+         * Přidání banneru pro dopravu zdarma do stránky
+         */
+        addShippingBanner: function() {
+            // Odstranění existujícího banneru, pokud existuje
+            const existingBanner = document.querySelector('.free-shipping-banner');
+            if (existingBanner) {
+                existingBanner.remove();
+            }
+            
+            // Vytvoření nového banneru
+            const banner = document.createElement('div');
+            banner.className = 'free-shipping-banner';
+            banner.id = 'free-shipping-banner';
+            banner.innerHTML = `
+                <div class="free-shipping-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="free-shipping-content">
+                    <div class="free-shipping-text">
+                        <span class="free-shipping-title">Doprava zdarma od 1500 Kč</span>
+                    </div>
+                    <div class="shipping-progress-wrapper">
+                        <div class="shipping-progress-container">
+                            <div class="shipping-progress-bar" id="shipping-progress-bar"></div>
+                        </div>
+                        <span class="free-shipping-progress" id="free-shipping-progress"></span>
+                    </div>
+                </div>
+            `;
+            
+            // Vložení banneru do souhrnu objednávky místo do košíku
+            const summaryTotal = document.querySelector('.summary-total');
+            const continueToDeliveryBtn = document.getElementById('continue-to-delivery');
+            
+            if (summaryTotal && continueToDeliveryBtn) {
+                // Vložíme banner mezi celkovou cenu a tlačítko pokračovat
+                const orderSummary = summaryTotal.parentNode.parentNode;
+                orderSummary.insertBefore(banner, continueToDeliveryBtn);
+            } else {
+                // Záložní možnost - vložení do košíku (původní logika)
+                const cartItems = document.querySelector('.cart-items');
+                const couponContainer = document.querySelector('.coupon-container');
+                
+                if (cartItems) {
+                    if (couponContainer) {
+                        cartItems.insertBefore(banner, couponContainer);
+                    } else {
+                        cartItems.appendChild(banner);
+                    }
+                }
+            }
+        },
+        
+        /**
+         * Přidání sekce pro zobrazení odměn
+         */
+        addRewardSection: function() {
+            // Odstranění existující sekce, pokud existuje
+            const existingSection = document.querySelector('.reward-section');
+            if (existingSection) {
+                existingSection.remove();
+            }
+            
+            // Vytvoření nové sekce
+            const section = document.createElement('div');
+            section.className = 'reward-section';
+            section.id = 'reward-section';
+            section.innerHTML = `
+                <div class="reward-header">
+                    <i class="fas fa-gift"></i>
+                    <span>Dárky za vaši objednávku</span>
+                </div>
+                <div id="current-reward-container"></div>
+            `;
+            
+            // Vložení sekce do stránky - ponecháme v košíku (původní umístění)
+            const cartItems = document.querySelector('.cart-items');
+            const couponContainer = document.querySelector('.coupon-container');
+            
+            if (cartItems) {
+                // Umístíme před kupón, pokud existuje
+                if (couponContainer) {
+                    cartItems.insertBefore(section, couponContainer);
+                } else {
+                    cartItems.appendChild(section);
+                }
+            }
+        },
+        
+        /**
+         * Nastavení event listenerů pro sledování změn množství a ceny
+         */
+        setupEventListeners: function() {
+            // Funkce pro throttling eventů - zabrání příliš častým aktualizacím
+            let throttleTimeout = null;
+            const throttleDelay = 300; // ms
+            
+            const throttledUpdate = () => {
+                if (throttleTimeout === null) {
+                    throttleTimeout = setTimeout(() => {
+                        this.updateSystemStatus();
+                        throttleTimeout = null;
+                    }, throttleDelay);
+                }
+            };
+            
+            // Sledování kliknutí na tlačítka pro změnu množství
+            
+
+            document.addEventListener('click', (e) => {
+                const quantityButton = e.target.closest('.qty-btn');
+                const plusIcon = e.target.classList.contains('fa-plus');
+                const minusIcon = e.target.classList.contains('fa-minus');
+                const plusText = e.target.textContent === '+';
+                const minusText = e.target.textContent === '-';
+                
+                if (quantityButton || plusIcon || minusIcon || plusText || minusText) {
+                    console.log('Kliknutí na změnu množství');
+                    throttledUpdate();
+                }
+            });
+            
+            // Sledování změn hodnoty v input polích
+            document.addEventListener('input', (e) => {
+                if (e.target.classList.contains('quantity') || 
+                    e.target.getAttribute('type') === 'number') {
+                    
+                    console.log('Změna hodnoty v poli množství');
+                    throttledUpdate();
+                }
+            });
+            
+            document.addEventListener('change', (e) => {
+                if (e.target.classList.contains('quantity') || 
+                    e.target.getAttribute('type') === 'number') {
+                    
+                    console.log('Změna hodnoty v poli množství');
+                    throttledUpdate();
+                }
+            });
+            
+            // Sledování tlačítek pro odstranění položky
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-item') || 
+                    e.target.closest('.remove-item')) {
+                    
+                    console.log('Kliknutí na odstranění položky');
+                    setTimeout(() => this.updateSystemStatus(), 100);
+                }
+            });
+            
+            // Sledování změn v DOM pomocí MutationObserver
+            const observer = new MutationObserver((mutations) => {
+                let shouldUpdate = false;
+                
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && 
+                       (mutation.target.classList.contains('cart-items') || 
+                        mutation.target.classList.contains('cart-item'))) {
+                        shouldUpdate = true;
+                    }
+                    
+                    if (mutation.type === 'attributes' && 
+                       (mutation.target.classList.contains('quantity') || 
+                        mutation.target.classList.contains('item-price'))) {
+                        shouldUpdate = true;
+                    }
+                });
+                
+                if (shouldUpdate) {
+                    console.log('Změna v košíku detekována');
+                    throttledUpdate();
+                }
+            });
+            
+            // Zahájení sledování změn v košíku
+            const cartItems = document.querySelector('.cart-items');
+            if (cartItems) {
+                observer.observe(cartItems, { 
+                    childList: true, 
+                    subtree: true, 
+                    attributes: true,
+                    attributeFilter: ['value', 'class']
+                });
+            }
+            
+            // Periodická kontrola stavu
+            setInterval(() => this.updateSystemStatus(), 2000);
+        },
+        
+        /**
+         * Rozšíření stávajících funkcí košíku
+         */
+        extendCartFunctions: function() {
+            // 1. updateShippingPrice
+            const originalUpdateShippingPrice = window.updateShippingPrice;
+            if (typeof originalUpdateShippingPrice === 'function') {
+                window.updateShippingPrice = () => {
+                    const result = originalUpdateShippingPrice.apply(this, arguments);
+                    // Okamžitá aktualizace, ale ne příliš často
+                    if (!this.isUpdating) {
+                        this.updateSystemStatus();
+                    }
+                    return result;
+                };
+            }
+            
+            // 2. updatePrices
+            const originalUpdatePrices = window.updatePrices;
+            if (typeof originalUpdatePrices === 'function') {
+                window.updatePrices = () => {
+                    const result = originalUpdatePrices.apply(this, arguments);
+                    // Okamžitá aktualizace, ale ne příliš často
+                    if (!this.isUpdating) {
+                        this.updateSystemStatus();
+                    }
+                    return result;
+                };
+            }
+            
+            // 3. updateAllOrderSummaries
+            const originalUpdateAllOrderSummaries = window.updateAllOrderSummaries;
+            if (typeof originalUpdateAllOrderSummaries === 'function') {
+                window.updateAllOrderSummaries = () => {
+                    const result = originalUpdateAllOrderSummaries.apply(this, arguments);
+                    // Okamžitá aktualizace, ale ne příliš často
+                    if (!this.isUpdating) {
+                        this.updateSystemStatus();
+                    }
+                    return result;
+                };
+            }
+            
+            // 4. updateQuantity
+            const originalUpdateQuantity = window.updateQuantity;
+            if (typeof originalUpdateQuantity === 'function') {
+                window.updateQuantity = () => {
+                    const result = originalUpdateQuantity.apply(this, arguments);
+                    // Okamžitá aktualizace, ale ne příliš často
+                    if (!this.isUpdating) {
+                        this.updateSystemStatus();
+                    }
+                    return result;
+                };
+            }
+            
+            // 5. updateQuantityDirectly
+            const originalUpdateQuantityDirectly = window.updateQuantityDirectly;
+            if (typeof originalUpdateQuantityDirectly === 'function') {
+                window.updateQuantityDirectly = () => {
+                    const result = originalUpdateQuantityDirectly.apply(this, arguments);
+                    // Okamžitá aktualizace, ale ne příliš často
+                    if (!this.isUpdating) {
+                        this.updateSystemStatus();
+                    }
+                    return result;
+                };
+            }
+            
+            // 6. removeItem
+            const originalRemoveItem = window.removeItem;
+            if (typeof originalRemoveItem === 'function') {
+                window.removeItem = () => {
+                    const result = originalRemoveItem.apply(this, arguments);
+                    // Krátké zpoždění pro aktualizaci po odstranění položky
+                    setTimeout(() => {
+                        if (!this.isUpdating) {
+                            this.updateSystemStatus();
+                        }
+                        
+                        // Zajistíme, že odměny se zobrazí i po odstranění položky
+                        const rewardSection = document.getElementById('reward-section');
+                        if (!rewardSection) {
+                            this.addRewardSection();
+                        }
+                        
+                        // Kontrola, zda existují stále nějaké položky
+                        const cartItems = document.querySelectorAll('.cart-item');
+                        if (cartItems.length > 0 && rewardSection) {
+                            rewardSection.style.display = '';
+                        }
+                    }, 100);
+                    return result;
+                };
+            }
+        },
+        
+        /**
+         * Aktualizace celého systému - hlavní funkce
+         */
+        updateSystemStatus: function() {
+            try {
+                // Zabraňujeme příliš častým aktualizacím pomocí throttlingu
+                if (this.isUpdating) {
+                    return;
+                }
+                
+                // Nastavíme příznak, že aktualizace probíhá
+                this.isUpdating = true;
+                
+                // Získání aktuálního mezisoučtu
+                const subtotal = this.getSubtotal();
+                console.log('Aktuální mezisoučet:', subtotal);
+                
+                // Aktualizace stavu dopravy zdarma
+                this.updateShippingStatus(subtotal);
+                
+                // Aktualizace stavu odměn
+                this.updateRewardStatus(subtotal);
+                
+                // Zobrazení nebo skrytí sekcí podle obsahu košíku
+                this.toggleVisibility(subtotal);
+                
+                // Zajistíme, že prvky existují a jsou viditelné i po odstranění položky
+                const shippingBanner = document.getElementById('free-shipping-banner');
+                const rewardSection = document.getElementById('reward-section');
+                
+                if (!shippingBanner) {
+                    this.addShippingBanner();
+                }
+                
+                if (!rewardSection) {
+                    this.addRewardSection();
+                }
+                
+                // NOVÉ: Zajišťuje aktualizaci všech cen po změně stavu dopravy zdarma
+                if (typeof window.updateAllOrderSummaries === 'function') {
+                    setTimeout(function() {
+                        window.updateAllOrderSummaries();
+                    }, 50);
+                }
+                
+                // Uvolníme příznak po krátké prodlevě
+                setTimeout(() => {
+                    this.isUpdating = false;
+                }, 200);
+            } catch (error) {
+                console.error('Chyba při aktualizaci systému:', error);
+                this.isUpdating = false;
+            }
+        },
+        
+        /**
+         * Získání aktuálního mezisoučtu
+         */
+        getSubtotal: function() {
+            let subtotal = 0;
+            
+            // Pokus 1: Použití funkce calculateSubtotal
+            if (typeof window.calculateSubtotal === 'function') {
+                subtotal = window.calculateSubtotal();
+            } 
+            // Pokus 2: Přímé čtení z DOM
+            else {
+                const subtotalEl = document.getElementById('subtotal');
+                
+                if (subtotalEl) {
+                    const subtotalText = subtotalEl.textContent.replace(/[^\d]/g, '');
+                    subtotal = parseInt(subtotalText, 10) || 0;
+                } else {
+                    // Nouzové řešení - sečtení položek košíku
+                    const cartItems = document.querySelectorAll('.cart-item');
+                    cartItems.forEach(item => {
+                        const priceEl = item.querySelector('.item-price');
+                        if (priceEl) {
+                            const priceText = priceEl.textContent.replace(/[^\d]/g, '');
+                            subtotal += parseInt(priceText, 10) || 0;
+                        }
+                    });
+                }
+            }
+            
+            return subtotal;
+        },
+        
+        /**
+         * Aktualizace stavu dopravy zdarma
+         */
+        updateShippingStatus: function(subtotal) {
+            // Kontrola, zda je mezisoučet vyšší než práh pro dopravu zdarma
+            const isFreeShipping = subtotal >= this.config.FREE_SHIPPING_THRESHOLD;
+            
+            // Zjistíme aktuálně vybranou metodu dopravy
+            const selectedDelivery = document.querySelector('input[name="delivery"]:checked');
+            const deliveryMethod = selectedDelivery ? selectedDelivery.value : null;
+            
+            console.log(`RewardsSystem: Kontrola dopravy zdarma - mezisoučet: ${subtotal} Kč, limit: ${this.config.FREE_SHIPPING_THRESHOLD} Kč, má nárok: ${isFreeShipping}`);
+            
+            // Aktualizace banneru
+            this.updateShippingBanner(subtotal, isFreeShipping);
+            
+            // Zpracování podle typu dopravy
+            if (deliveryMethod === 'express') {
+                if (isFreeShipping) {
+                    // Pokud je dosažen limit pro dopravu zdarma, expresní doručení je zdarma
+                    console.log('RewardsSystem: Expresní doručení zdarma (dosažen limit pro dopravu zdarma)');
+                    window.shippingPrice = 0;
+                    
+                    // Aktualizace zobrazených cen v souhrnu
+                    this.updateShippingDisplay('Zdarma', true);
+                } else {
+                    // DŮLEŽITÁ ZMĚNA: Pokud NENÍ dosažen limit, nastavíme zpět plnou cenu expresního doručení
+                    console.log('RewardsSystem: Expresní doručení za standardní cenu (149 Kč)');
+                    window.shippingPrice = 149; // Obnovení standardní ceny expresního doručení
+                    
+                    // Aktualizace zobrazených cen 
+                    this.updateShippingDisplay('149 Kč', false);
+                }
+            }
+            // Pro osobní odběr vždy zachováváme cenu 0
+            else if (deliveryMethod === 'pickup') {
+                // Pro osobní odběr je to vždy zdarma
+                console.log('RewardsSystem: Osobní odběr (vždy zdarma)');
+                window.shippingPrice = 0;
+                this.updateShippingDisplay('Zdarma', true);
+            }
+            // Standardní zpracování pro ostatní metody dopravy (Zásilkovna, PPL)
+            else {
+                if (isFreeShipping) {
+                    // Pokud máme dopravu zdarma
+                    console.log('RewardsSystem: Standardní doprava zdarma (dosažen limit)');
+                    window.shippingPrice = 0;
+                    this.updateShippingDisplay('Zdarma', true);
+                } else {
+                    // DŮLEŽITÁ ZMĚNA: Pokud NEMÁME dopravu zdarma, nastavíme zpět standardní ceny
+                    if (deliveryMethod === 'zasilkovna') {
+                        console.log('RewardsSystem: Zásilkovna za standardní cenu (79 Kč)');
+                        window.shippingPrice = 79; // Standardní cena Zásilkovny
+                    } else if (deliveryMethod === 'ppl') {
+                        console.log('RewardsSystem: PPL za standardní cenu (89 Kč)');
+                        window.shippingPrice = 89; // Standardní cena PPL
+                    } else {
+                        // Pro případ, že by byla vybrána jiná metoda
+                        console.log('RewardsSystem: Jiná doprava za standardní cenu');
+                        window.shippingPrice = 79; // Výchozí cena
+                    }
+                    
+                    // Aktualizace zobrazených cen
+                    this.updateShippingDisplay(`${window.shippingPrice} Kč`, false);
+                }
+            }
+            
+            // Aktualizace celkové ceny
+            if (typeof window.updateAllOrderSummaries === 'function') {
+                window.updateAllOrderSummaries();
+            }
+        },   
+        
+        updateShippingDisplay: function(text, isFree) {
+            const shippingEls = document.querySelectorAll('#shipping, #summary-shipping');
+            shippingEls.forEach(el => {
+                if (el) {
+                    el.textContent = text;
+                    if (isFree) {
+                        el.classList.add('free-shipping');
+                    } else {
+                        el.classList.remove('free-shipping');
+                    }
+                }
+            });
+        },
+        
+        /**
+         * Aktualizace banneru dopravy zdarma
+         */
+        updateShippingBanner: function(subtotal, isFreeShipping) {
+            const banner = document.getElementById('free-shipping-banner');
+            const progressBar = document.getElementById('shipping-progress-bar');
+            const progressText = document.getElementById('free-shipping-progress');
+            
+            if (!banner || !progressBar || !progressText) {
+                return;
+            }
+            
+            if (isFreeShipping) {
+                // Nastavení pro dopravu zdarma
+                banner.classList.add('free-shipping-active');
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Máte dopravu zdarma!';
+            } else {
+                // Výpočet zbývající částky
+                const remaining = this.config.FREE_SHIPPING_THRESHOLD - subtotal;
+                
+                // Výpočet procenta
+                const percent = Math.min((subtotal / this.config.FREE_SHIPPING_THRESHOLD) * 100, 100);
+                
+                // Aktualizace UI
+                banner.classList.remove('free-shipping-active');
+                
+                // Nastavení šířky progress baru
+                progressBar.style.width = `${percent}%`;
+                
+                progressText.textContent = `Do dopravy zdarma zbývá ${remaining} Kč`;
+            }
+        },
+        
+        /**
+         * Aktualizace stavu odměn
+         */
+        updateRewardStatus: function(subtotal) {
+            // Nalezení nejvyšší dosažené odměny
+            let highestReward = null;
+            
+            for (let i = this.config.REWARDS.length - 1; i >= 0; i--) {
+                if (subtotal >= this.config.REWARDS[i].threshold) {
+                    highestReward = this.config.REWARDS[i];
+                    break;
+                }
+            }
+            
+            // Aktualizace odměny v UI
+            this.updateRewardUI(highestReward, subtotal);
+        },
+        
+        // Statická proměnná pro animaci
+        isAnimating: false,
+        
+        /**
+         * Aktualizace UI odměny s jednoduchou animací
+         */
+        updateRewardUI: function(reward, subtotal) {
+            const container = document.getElementById('current-reward-container');
+            if (!container) {
+                return;
+            }
+            
+            // Zjištění předchozí úrovně
+            let previousLevel = 0;
+            const currentRewardItem = container.querySelector('.reward-item');
+            if (currentRewardItem) {
+                previousLevel = parseInt(currentRewardItem.getAttribute('data-level') || '0');
+            }
+            
+            // Aktuální úroveň
+            const currentLevel = reward ? reward.level : 0;
+            
+            // Přeskočíme aktualizaci, pokud se úroveň nezměnila a obsah už existuje
+            if (currentLevel === previousLevel && currentRewardItem) {
+                // Aktualizujeme pouze text pro zbývající částku do další úrovně, pokud je potřeba
+                if (currentLevel > 0 && currentLevel < this.config.REWARDS.length) {
+                    const nextReward = this.config.REWARDS.find(r => r.level > currentLevel);
+                    if (nextReward) {
+                        const remaining = nextReward.threshold - subtotal;
+                        const nextRewardEl = currentRewardItem.querySelector('.next-reward');
+                        if (nextRewardEl) {
+                            nextRewardEl.textContent = `Přidejte zboží za ${remaining} Kč pro Level ${nextReward.level} dárek`;
+                        }
+                    }
+                } else if (currentLevel === 0) {
+                    // Aktualizujeme text pro první odměnu
+                    const nextReward = this.config.REWARDS[0];
+                    const remaining = nextReward.threshold - subtotal;
+                    const thresholdEl = currentRewardItem.querySelector('.reward-threshold');
+                    if (thresholdEl) {
+                        thresholdEl.textContent = `Přidejte zboží za ${remaining} Kč pro získání dárku`;
+                    }
+                }
+                return;
+            }
+            
+            // Příprava HTML obsahu
+            let newHtml = '';
+            
+            if (!reward) {
+                // Výzva k první odměně
+                const nextReward = this.config.REWARDS[0];
+                const remaining = nextReward.threshold - subtotal;
+                
+                newHtml = `
+                    <div class="reward-item reward-locked" data-level="0">
+                        <div class="reward-icon">
+                            <i class="fas fa-${nextReward.icon}"></i>
+                        </div>
+                        <div class="reward-content">
+                            <span class="reward-title">${nextReward.name}</span>
+                            <span class="reward-threshold">Přidejte zboží za ${remaining} Kč pro získání dárku</span>
+                        </div>
+                        <div class="reward-status">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Indikace další úrovně, pokud existuje
+                let nextRewardText = '';
+                const rewardIndex = this.config.REWARDS.findIndex(r => r.level === reward.level);
+                
+                if (rewardIndex < this.config.REWARDS.length - 1) {
+                    const nextReward = this.config.REWARDS[rewardIndex + 1];
+                    const remaining = nextReward.threshold - subtotal;
+                    nextRewardText = `<span class="next-reward">Přidejte zboží za ${remaining} Kč pro Level ${nextReward.level} dárek</span>`;
+                }
+                
+                // Speciální třídy podle úrovně
+                let specialClass = '';
+                if (reward.level === 5) {
+                    specialClass = 'reward-max-level';
+                } else if (reward.level >= 3) {
+                    specialClass = `reward-level-${reward.level}`;
+                }
+                
+                newHtml = `
+                    <div class="reward-item reward-unlocked ${specialClass}" data-level="${reward.level}">
+                        <div class="reward-icon">
+                            <i class="fas fa-${reward.icon}"></i>
+                        </div>
+                        <div class="reward-content">
+                            <span class="reward-title">${reward.name}</span>
+                            <span class="reward-threshold">Máte nárok na dárek!</span>
+                            ${nextRewardText}
+                        </div>
+                        <div class="reward-status">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Aplikace nového obsahu
+            container.innerHTML = newHtml;
+            
+            // Aplikace pomalé animace pouze při zvýšení úrovně
+            if (currentLevel > previousLevel) {
+                console.log(`Zvýšení úrovně z ${previousLevel} na ${currentLevel} - spouštím animaci`);
+                const newRewardItem = container.querySelector('.reward-item');
+                if (newRewardItem) {
+                    // Vytvoříme proměnnou, která bude sloužit jako příznak, že animace již běží
+                    if (!this.isAnimating) {
+                        this.isAnimating = true;
+                        
+                        // Přidáme třídu pro animaci
+                        newRewardItem.classList.add('reward-level-up');
+                        
+                        // Odstranění třídy po dokončení animace
+                        setTimeout(() => {
+                            console.log('Odstraňuji třídu animace');
+                            newRewardItem.classList.remove('reward-level-up');
+                            this.isAnimating = false;
+                        }, 2000); // 2 sekundy pro animaci
+                    }
+                }
+            }
+        },
+        
+        /**
+         * Přepínání viditelnosti sekcí podle obsahu košíku
+         * - Banner dopravy zdarma je vždy viditelný v souhrnu objednávky
+         * - Sekce odměn se zobrazuje pouze když není košík prázdný
+         */
+        toggleVisibility: function(subtotal) {
+            const shippingBanner = document.getElementById('free-shipping-banner');
+            const rewardSection = document.getElementById('reward-section');
+            
+            // Banner dopravy zdarma vždy zobrazíme - je v souhrnu objednávky
+            if (shippingBanner) shippingBanner.style.display = '';
+            
+            // Sekce odměn se zobrazí jen když košík obsahuje položky
+            const cartContainer = document.querySelector('.cart-items');
+            const cartItems = cartContainer ? cartContainer.querySelectorAll('.cart-item') : [];
+            const isCartEmpty = cartItems.length === 0;
+            
+            if (isCartEmpty) {
+                if (rewardSection) rewardSection.style.display = 'none';
+            } else {
+                if (rewardSection) rewardSection.style.display = '';
+            }
+            
+            // Zajistíme, že banner dopravy zdarma existuje
+            if (!shippingBanner) {
+                this.addShippingBanner();
+            }
+        }
+    };
+    
+    // Počkáme, až bude DOM načten a pak spustíme inicializaci
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            RewardsSystem.init();
+        });
+    } else {
+        RewardsSystem.init();
+    }
+    
+    // Exportujeme systém do globálního kontextu, aby k němu měly přístup i další skripty
+    window.RewardsSystem = RewardsSystem;
+})();
 
 /**
  * Packeta Widget Integration
@@ -4207,10 +5080,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Pomocné funkce pro volání API
 const API = {
-    // Základní URL pro API
+    // Correct base URL for API
     baseUrl: 'http://127.0.0.1:5000/api/shop',
     
-    // Pomocná metoda pro AJAX požadavky
+    // Helper method for AJAX requests
     async request(endpoint, method = 'GET', data = null) {
         const url = `${this.baseUrl}${endpoint}`;
         const options = {
@@ -4219,7 +5092,7 @@ const API = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            credentials: 'include' // Zahrnout cookies
+            credentials: 'include' // Include cookies
         };
         
         if (data) {
@@ -4231,7 +5104,7 @@ const API = {
             const result = await response.json();
             
             if (!response.ok) {
-                throw new Error(result.message || 'Došlo k chybě při komunikaci se serverem');
+                throw new Error(result.message || 'Error communicating with server');
             }
             
             return result;
