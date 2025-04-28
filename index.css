@@ -6230,7 +6230,7 @@ body.low-graphics {
     grid-template-columns: 1fr;
     max-width: 520px;
     margin: 0 auto;
-    width: 350px;
+    width: 250px;
   }
   
   .contact-card {
