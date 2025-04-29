@@ -1126,7 +1126,7 @@ function completeOrderWithApi() {
         }
         
         // Use correct backend URL
-        fetch('http://127.0.0.1:5000/api/shop/create-order', {
+        fetch('https://sajrajt.cz/api/shop/create-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2726,7 +2726,7 @@ function updatePaymentFee() {
                 showLoader();
                 
                 // DŮLEŽITÁ ZMĚNA: Přidání specifické URL s portem pro backend
-                const backendUrl = 'http://127.0.0.1:5000';
+                const backendUrl = 'https://sajrajt.cz/';
                 
                 // Použijeme číslo objednávky pro získání/vytvoření faktury
                 fetch(`${backendUrl}/api/invoices/${order.order_number}`, {
@@ -2798,6 +2798,7 @@ function updatePaymentFee() {
     */
     
     function showBankTransferDetails(order) {
+        // Zobrazíme QR sekci vždy, bez ohledu na platební metodu
         const qrSection = document.querySelector('.qr-code-container');
         if (qrSection) {
             qrSection.style.display = 'block';
@@ -2822,8 +2823,12 @@ function updatePaymentFee() {
             amountElement.textContent = `${parseFloat(order.total).toFixed(2)} Kč`;
         }
     
-        generatePaymentQR(order.order_number, order.total);
-    }    
+        // Generujeme QR kód pro platbu s platební metodou
+        generatePaymentQR(order.order_number, order.total, order.payment ? order.payment.method : 'bank');
+        
+        // Zajistíme, že struktura pro vysvětlující text existuje
+        ensureQRSectionStructure();
+    }
 
     /**
     * Generuje QR kód pro platbu podle českého standardu QR plateb
@@ -2831,7 +2836,7 @@ function updatePaymentFee() {
     * @param {number} amount - Částka k úhradě
     * @param {string} [message] - Nepovinná zpráva pro příjemce
     */
-    function generatePaymentQR(orderId, amount) {
+    function generatePaymentQR(orderId, amount, paymentMethod = 'bank') {
         const iban = 'CZ6130300000003361960019';
         const formattedAmount = parseFloat(amount).toFixed(2);
     
@@ -2852,7 +2857,28 @@ function updatePaymentFee() {
             qrElement.src = qrUrl;
             qrElement.alt = `QR kód pro platbu ${formattedAmount} Kč`;
         }
-    }    
+        
+        // Aktualizujeme vysvětlující text podle platební metody
+        updatePaymentInfoText(paymentMethod);
+    }
+
+    function ensureQRSectionStructure() {
+        const qrSection = document.querySelector('.qr-code-container');
+        if (!qrSection) return;
+        
+        // Kontrola, zda již existuje element pro vysvětlující text
+        let infoTextEl = document.getElementById('payment-info-text');
+        if (!infoTextEl) {
+            // Vytvoření elementu pro vysvětlující text
+            infoTextEl = document.createElement('p');
+            infoTextEl.id = 'payment-info-text';
+            infoTextEl.className = 'payment-info-text';
+            infoTextEl.textContent = 'Použijte tento QR kód pro zaplacení objednávky bankovním převodem.';
+            
+            // Vložení elementu do QR sekce
+            qrSection.appendChild(infoTextEl);
+        }
+    }
 
     /**
      * Přehrání efektu konfetti při úspěšné objednávce
@@ -3248,6 +3274,8 @@ function updatePaymentFee() {
     document.head.appendChild(styleEl);
 });
 
+document.addEventListener('DOMContentLoaded', ensureQRSectionStructure);
+
 /**
  * Funkce pro zabezpečené stažení faktury
  * Přidejte tuto funkci do souboru Cart.js
@@ -3257,7 +3285,7 @@ function secureDownloadInvoice(invoiceNumber, orderNumber) {
     showLoader();
     
     // IMPORTANT CHANGE: Use the correct backend URL
-    const backendUrl = 'http://127.0.0.1:5000';
+    const backendUrl = 'https://sajrajt.cz/';
     
     // First get a token for downloading the invoice
     fetch(`${backendUrl}/api/invoices/${invoiceNumber}/get-download-token`, {
@@ -3337,12 +3365,14 @@ function updateConfirmationWithOrderData(order) {
     // Update payment method display
     const orderPaymentEl = document.getElementById('order-payment');
     if (orderPaymentEl && order.payment && order.payment.method) {
-        if (order.payment && order.payment.method === 'bank') {
-            showBankTransferDetails(order);
+        if (order.payment.method === 'bank') {
+            orderPaymentEl.textContent = 'Bankovní převod';
         } else if (order.payment.method === 'card') {
             orderPaymentEl.textContent = 'Online platba kartou';
         } else if (order.payment.method === 'cod') {
             orderPaymentEl.textContent = 'Dobírka';
+        } else if (order.payment.method === 'personal-express') {
+            orderPaymentEl.textContent = 'Na místě';
         }
     }
     
@@ -3352,18 +3382,8 @@ function updateConfirmationWithOrderData(order) {
         orderTotalEl.textContent = `${order.total} Kč`;
     }
     
-    // Set variable symbol (order number) for bank account
-    const variableSymbolEl = document.getElementById('variable-symbol');
-    if (variableSymbolEl) {
-        const shortVS = order.order_number.toString().slice(0, 8) + order.order_number.toString().slice(-2);
-        variableSymbolEl.textContent = shortVS;
-    }
-    
-    // Set payment amount 
-    const paymentAmountEl = document.getElementById('payment-amount');
-    if (paymentAmountEl && order.total) {
-        paymentAmountEl.textContent = `${order.total} Kč`;
-    }
+    // ZMĚNA: Nyní zobrazíme QR kód a detaily platby vždy pro všechny platební metody
+    showBankTransferDetails(order);
     
     // Create download invoice button event listener with secured download
     const downloadInvoiceBtn = document.getElementById('download-invoice-btn');
@@ -3382,8 +3402,11 @@ function updateConfirmationWithOrderData(order) {
             // Zobrazení loaderu
             showLoader();
             
+            // DŮLEŽITÁ ZMĚNA: Přidání specifické URL s portem pro backend
+            const backendUrl = 'https://sajrajt.cz/';
+            
             // Použijeme číslo objednávky pro získání/vytvoření faktury
-            fetch(`/api/invoices/${order.order_number}`, {
+            fetch(`${backendUrl}/api/invoices/${order.order_number}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3393,7 +3416,8 @@ function updateConfirmationWithOrderData(order) {
             .then(data => {
                 if (data.status === 'success' && data.invoice) {
                     // Spustíme stahování faktury
-                    window.location.href = `/api/invoices/${data.invoice.invoice_number}/download`;
+                    // ZMĚNA: Použití plné URL včetně portu
+                    window.location.href = `${backendUrl}/api/invoices/${data.invoice.invoice_number}/download`;
                     
                     // Skryjeme loader po krátké prodlevě
                     setTimeout(() => {
@@ -3411,6 +3435,65 @@ function updateConfirmationWithOrderData(order) {
             });
         });
     }
+    
+    // Zobrazení informace o slevě, pokud byla použita
+    if (order.discount && order.discount > 0) {
+        const orderDetails = document.querySelector('.order-details');
+        if (orderDetails) {
+            // Kontrola, zda již existuje řádek se slevou
+            let discountRow = orderDetails.querySelector('.detail-row.discount');
+            
+            if (!discountRow) {
+                // Vytvoříme nový řádek se slevou
+                discountRow = document.createElement('div');
+                discountRow.className = 'detail-row discount';
+                discountRow.innerHTML = `
+                    <span>Sleva:</span>
+                    <span id="order-discount">-${order.discount} Kč</span>
+                `;
+                
+                // Vložíme řádek před celkovou cenu
+                const totalRow = orderDetails.querySelector('.detail-row:last-child');
+                if (totalRow) {
+                    orderDetails.insertBefore(discountRow, totalRow);
+                } else {
+                    orderDetails.appendChild(discountRow);
+                }
+            } else {
+                // Aktualizujeme existující řádek
+                const discountValue = discountRow.querySelector('span:last-child');
+                if (discountValue) {
+                    discountValue.textContent = `-${order.discount} Kč`;
+                }
+            }
+        }
+    }
+}
+
+function updatePaymentInfoText(paymentMethod) {
+    const infoTextEl = document.getElementById('payment-info-text');
+    if (!infoTextEl) return;
+    
+    let infoText = '';
+    
+    switch (paymentMethod) {
+        case 'bank':
+            infoText = 'Použijte tento QR kód pro bankovní převod nebo zadejte údaje ručně.';
+            break;
+        case 'card':
+            infoText = 'Pokud preferujete bankovní převod, můžete použít tento QR kód místo platby kartou.';
+            break;
+        case 'cod':
+            infoText = 'Pokud chcete změnit způsob platby na bankovní převod, použijte tento QR kód.';
+            break;
+        case 'personal-express':
+            infoText = 'Pokud chcete zaplatit předem místo na místě, použijte tento QR kód.';
+            break;
+        default:
+            infoText = 'Použijte tento QR kód pro zaplacení objednávky bankovním převodem.';
+    }
+    
+    infoTextEl.textContent = infoText;
 }
 
 let isDownloadSetup = false; // Globální flag pro kontrolu inicializace
@@ -3545,7 +3628,7 @@ function applyCouponWithApi() {
     showLoader();
     
     // Volání API pro ověření kupónu
-    fetch('http://127.0.0.1:5000/api/shop/verify-coupon', {
+    fetch('https://sajrajt.cz/api/shop/verify-coupon', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -3973,7 +4056,7 @@ if (typeof completeOrderWithApi !== 'function' && typeof window.completeOrderWit
                 // Zkusíme použít výchozí URL pokud není definována
                 //const apiBaseUrl = (window.API && window.API.baseUrl) ? window.API.baseUrl : '/api/shop';
                 
-                fetch('http://127.0.0.1:5000/api/shop/create-order', {
+                fetch('https://sajrajt.cz/api/shop/create-order', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -5081,7 +5164,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Pomocné funkce pro volání API
 const API = {
     // Correct base URL for API
-    baseUrl: 'http://127.0.0.1:5000/api/shop',
+    baseUrl: 'https://sajrajt.cz/api/shop',
     
     // Helper method for AJAX requests
     async request(endpoint, method = 'GET', data = null) {
